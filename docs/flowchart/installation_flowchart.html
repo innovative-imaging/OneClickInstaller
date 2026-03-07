@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneClickInstaller - Installation Process Flowchart</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #d29922;
+    --purple: #bc8cff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1f35, #0d1117);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2rem 1.5rem;
+    text-align: center;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  .header p { color: var(--muted); font-size: 0.95rem; }
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+  /* Phase sections */
+  .phase {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .phase-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-number {
+    background: var(--blue);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .phase-number.green { background: var(--green); }
+  .phase-number.purple { background: var(--purple); color: #000; }
+  .phase-number.orange { background: var(--orange); color: #000; }
+  .phase-title { font-size: 1.1rem; font-weight: 600; }
+  .phase-desc { color: var(--muted); font-size: 0.85rem; margin-left: auto; }
+  .phase-body { padding: 1.5rem; }
+
+  /* Mermaid overrides */
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+  .mermaid svg { max-width: 100%; height: auto; }
+
+  /* Arrow connector between phases */
+  .connector {
+    display: flex;
+    justify-content: center;
+    margin: -0.5rem 0;
+    font-size: 1.8rem;
+    color: var(--muted);
+  }
+
+  /* Summary table */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .summary-table th {
+    text-align: left;
+    padding: 0.6rem 1rem;
+    background: rgba(88, 166, 255, 0.08);
+    border-bottom: 1px solid var(--border);
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .summary-table td {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    vertical-align: top;
+  }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-msi { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+  .badge-exe { background: rgba(88, 166, 255, 0.15); color: var(--blue); }
+  .badge-copy { background: rgba(210, 153, 34, 0.15); color: var(--orange); }
+  .badge-dism { background: rgba(188, 140, 255, 0.15); color: var(--purple); }
+  .badge-inf { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+  .badge-mysql { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+
+  .note {
+    background: rgba(210, 153, 34, 0.08);
+    border-left: 3px solid var(--orange);
+    padding: 0.8rem 1rem;
+    border-radius: 0 6px 6px 0;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .note strong { color: var(--orange); }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OneClickInstaller &mdash; Installation Process Flowchart</h1>
+  <p>Complete end-to-end flow: from bootstrap to sealed kiosk mode</p>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span> INSTALL.bat (Bootstrap)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--green)"></span> OneClickInstaller.exe (Software)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span> EikonConfigurator.exe (OS Lockdown)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--orange)"></span> Decision / Gate</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--red)"></span> Error / Abort</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ================= PHASE 1: INSTALL.BAT ================= -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-number">PHASE 1</span>
+    <span class="phase-title">INSTALL.bat &mdash; Bootstrap Launcher</span>
+    <span class="phase-desc">Prepares .NET prerequisites, handles reboot, launches OneClickInstaller</span>
+  </div>
+  <div class="phase-body">
+    <div class="mermaid">
+flowchart TD
+    A([🖱️ User double-clicks INSTALL.bat]):::start --> B{Running as\nAdministrator?}
+    B -- No --> C[Auto-elevate via\nPowerShell Start-Process\n-Verb RunAs]:::action
+    C --> B
+    B -- Yes --> D["Step 1: Check .NET 3.5 SP1\n(registry query)"]:::action
+
+    D --> E{.NET 3.5\ninstalled?}
+    E -- Yes --> F
+    E -- No --> D1["Install via DISM\n/enable-feature NetFX3\n/Source:sxs /LimitAccess"]:::action
+    D1 --> D2{Exit code?}
+    D2 -- "0" --> F
+    D2 -- "3010" --> R1[Set NEED_RESTART=1]:::warn
+    R1 --> F
+    D2 -- "Other" --> D3[Log warning, continue]:::warn
+    D3 --> F
+
+    F["Step 2: Check .NET 4.8\n(registry Release ≥ 528040)"]:::action --> G{.NET 4.8\ninstalled?}
+    G -- Yes --> H
+    G -- No --> F1["Install .NET 4.8\n/q /norestart"]:::action
+    F1 --> F2{Exit code?}
+    F2 -- "0 / 5100" --> H
+    F2 -- "1641 / 3010" --> R2[Set NEED_RESTART=1]:::warn
+    R2 --> H
+    F2 -- "Other" --> F3[Log warning, continue]:::warn
+    F3 --> H
+
+    H{Reboot\nneeded?}
+    H -- Yes --> I["Register RunOnce\nkey for auto-resume"]:::action
+    I --> J["shutdown /r /t 15\n⟳ System reboots"]:::reboot
+    J --> K(["💻 System restarts\nINSTALL.bat resumes\nautomatically"]):::start
+    K --> F
+
+    H -- No --> L["Step 3: Launch\nOneClickInstaller.exe"]:::launch
+    L --> M([✅ INSTALL.bat exits]):::done
+
+    classDef start fill:#1a3a5c,stroke:#58a6ff,color:#e6edf3
+    classDef action fill:#1c2d3f,stroke:#30363d,color:#e6edf3
+    classDef warn fill:#2d2a1a,stroke:#d29922,color:#d29922
+    classDef reboot fill:#2d1a1a,stroke:#f85149,color:#f85149
+    classDef launch fill:#1a2d1a,stroke:#3fb950,color:#3fb950
+    classDef done fill:#1a2d1a,stroke:#3fb950,color:#3fb950
+    </div>
+  </div>
+</div>
+
+<div class="connector">▼</div>
+
+<!-- ================= PHASE 2: ONECLICKINSTALLER ================= -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-number green">PHASE 2</span>
+    <span class="phase-title">OneClickInstaller.exe &mdash; Software Installation</span>
+    <span class="phase-desc">WPF app &bull; .NET Framework 4.8 &bull; JSON-driven</span>
+  </div>
+  <div class="phase-body">
+    <div class="mermaid">
+flowchart TD
+    A([🚀 OneClickInstaller.exe starts]):::start --> B["Load installer-config.json\nParse packages, settings,\nosConfiguration"]:::action
+    B --> C{Admin\nprivileges?}
+    C -- No --> ERR1([❌ Abort:\nMust run as Administrator]):::error
+    C -- Yes --> D["Verify all installer files\n(pre-flight check)"]:::action
+    D --> E["Log missing packages\n(will be skipped)"]:::action
+
+    E --> F{Disk partitioning\nenabled?}
+    F -- Yes --> G["Shrink C: → 60 GB\nCreate D: 15 GB (App)\nCreate E: remaining (Data)"]:::action
+    G --> H
+    F -- No --> H
+
+    H["📦 Install 14 Software Packages\n(sequential, see table below)"]:::install
+    H --> I{All packages\nsucceeded?}
+    I -- "Some failed" --> I2["failedCount++\nContinue with next"]:::warn
+    I2 --> H2
+
+    I -- "All OK" --> H2["🗄️ Database Configuration\nCreate DB · Run SQL script"]:::action
+    H2 --> H3{DB config\nOK?}
+    H3 -- Yes --> J
+    H3 -- No --> J2["failedCount++\nLog error, continue"]:::warn
+    J2 --> J
+
+    J["📦 Final Package: GVPPro Setup\n(MSI /quiet)"]:::install
+    J --> J3{GVPPro\nOK?}
+    J3 -- Yes --> K
+    J3 -- No --> K2["failedCount++"]:::warn
+    K2 --> K
+
+    K{failedCount\n== 0 ?}:::gate
+    K -- "No (errors exist)" --> L["⚠️ SKIP OS Configuration\nLog: fix errors and re-run"]:::warn
+    L --> M([🔚 Show 'Close' button\nUser reviews errors]):::done
+
+    K -- "Yes (all green ✅)" --> N["🛡️ Launch EikonConfigurator\n(auto-proceeds, no user input)"]:::launch
+    N --> O([➡️ Proceeds to Phase 3]):::done
+
+    classDef start fill:#1a3a5c,stroke:#58a6ff,color:#e6edf3
+    classDef action fill:#1c2d3f,stroke:#30363d,color:#e6edf3
+    classDef install fill:#1a2d1a,stroke:#3fb950,color:#e6edf3
+    classDef warn fill:#2d2a1a,stroke:#d29922,color:#d29922
+    classDef error fill:#2d1a1a,stroke:#f85149,color:#f85149
+    classDef gate fill:#2d2a1a,stroke:#d29922,color:#e6edf3
+    classDef launch fill:#1a2d1a,stroke:#3fb950,color:#3fb950
+    classDef done fill:#1a2d1a,stroke:#3fb950,color:#3fb950
+    </div>
+
+    <h3 style="margin:1.5rem 0 0.8rem;font-size:0.95rem;color:var(--blue)">Software Package Install Order</h3>
+    <table class="summary-table">
+      <thead>
+        <tr><th>#</th><th>Package</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Microsoft Visual C++ 2008 Redistributable (x86)</td><td><span class="badge badge-exe">EXE</span></td><td>/quiet</td></tr>
+        <tr><td>2</td><td>Microsoft Visual C++ 2010 Redistributable (x86)</td><td><span class="badge badge-exe">EXE</span></td><td>/quiet</td></tr>
+        <tr><td>3</td><td>Microsoft Visual C++ 2010 Redistributable (x64)</td><td><span class="badge badge-exe">EXE</span></td><td>/quiet</td></tr>
+        <tr><td>4</td><td>Microsoft Visual C++ 2012 Redistributable (x86)</td><td><span class="badge badge-exe">EXE</span></td><td>/quiet</td></tr>
+        <tr><td>5</td><td>Microsoft Visual C++ 2012 Redistributable (x64)</td><td><span class="badge badge-exe">EXE</span></td><td>/quiet</td></tr>
+        <tr><td>6</td><td>Microsoft Visual C++ 2015-2022 Redistributable (x64)</td><td><span class="badge badge-exe">EXE</span></td><td>/quiet &mdash; Required by MySQL</td></tr>
+        <tr><td>7</td><td>7-Zip 9.20 (x64)</td><td><span class="badge badge-msi">MSI</span></td><td>/quiet /norestart</td></tr>
+        <tr><td>8</td><td>CH34x USB-to-Serial Driver</td><td><span class="badge badge-inf">INF</span></td><td>pnputil via SysNative, temp-copy</td></tr>
+        <tr><td>9</td><td>Microsoft DirectX SDK (Jun 2010)</td><td><span class="badge badge-exe">EXE</span></td><td>/U (unattended)</td></tr>
+        <tr><td>10</td><td>MySQL Installer (Bootstrapper)</td><td><span class="badge badge-msi">MSI</span></td><td>Installs MySQLInstallerConsole</td></tr>
+        <tr><td>11</td><td>MySQL Server 8.0.21 + Workbench</td><td><span class="badge badge-mysql">MYSQL_CONSOLE</span></td><td>community install server;workbench -silent</td></tr>
+        <tr><td>12</td><td>MySQL Connector .NET 8.0.25</td><td><span class="badge badge-msi">MSI</span></td><td>/quiet /norestart</td></tr>
+        <tr><td>13</td><td>Luts Calibration Files</td><td><span class="badge badge-copy">COPY</span></td><td>→ D:\Luts</td></tr>
+        <tr><td>14</td><td>Notepad++ 8.8.9</td><td><span class="badge badge-msi">MSI</span></td><td>/quiet /norestart</td></tr>
+        <tr><td style="border-top:2px solid var(--border)">DB</td><td style="border-top:2px solid var(--border)">Database Configuration</td><td style="border-top:2px solid var(--border)"><span class="badge badge-mysql">SQL</span></td><td style="border-top:2px solid var(--border)">CREATE DATABASE + source script</td></tr>
+        <tr><td style="border-top:2px solid var(--border)">15</td><td style="border-top:2px solid var(--border)"><strong>GVPPro Setup</strong> (Final Package)</td><td style="border-top:2px solid var(--border)"><span class="badge badge-msi">MSI</span></td><td style="border-top:2px solid var(--border)">/quiet /norestart &mdash; installed last</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong>⚠️ Error Gate:</strong> If <em>any</em> package, database config, or final package fails, `failedCount` is incremented. 
+      OS Configuration (Phase 3) is <strong>only launched when failedCount == 0</strong>. On failure, the user sees the error log and must fix issues before re-running.
+    </div>
+  </div>
+</div>
+
+<div class="connector">▼</div>
+
+<!-- ================= PHASE 3: EIKONCONFIGURATORR ================= -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-number purple">PHASE 3</span>
+    <span class="phase-title">EikonConfigurator.exe &mdash; Kiosk OS Lockdown</span>
+    <span class="phase-desc">.NET 8.0 &bull; Self-contained &bull; 19 configuration steps + seal</span>
+  </div>
+  <div class="phase-body">
+    <div class="mermaid">
+flowchart TD
+    A([🛡️ EikonConfigurator launched\nby OneClickInstaller]):::start
+    A --> B["Copy to C:\\EikonConfigurator\n(local fixed drive)"]:::action
+    B --> C["Deploy startup files\n(KioskLauncher.vbs → D:\\GVP-Pro\\App)"]:::action
+    C --> D["Load hardware-config.json\nLoad state (registry)"]:::action
+    D --> E["Set RunOnce resilience key\n(auto-resume after reboot)"]:::action
+
+    E --> S1["Step 1: Hardware Validation"]:::step
+    S1 --> S2["Step 2: Windows Features\n(UWF, Shell Launcher, Keyboard Filter)"]:::step
+    S2 --> S3["Step 3: Hardware Config\n(NICs, serial ports, device hardening)"]:::step
+    S3 --> S4["Step 4: Scheduled Tasks"]:::step
+    S4 --> S5["Step 5: OS Tuning\n(power, display, updates)"]:::step
+    S5 --> S6["Step 6: Create User\n(EikonUser kiosk account)"]:::step
+    S6 --> S7["Step 7: Registry Hardening"]:::step
+    S7 --> S8["Step 8: Crash Dumps"]:::step
+    S8 --> S9["Step 9: Services Optimization"]:::step
+    S9 --> S10["Step 10: Firewall Configuration"]:::step
+    S10 --> S11["Step 11: Local Policies"]:::step
+    S11 --> S12["Step 12: CIS Benchmarks"]:::step
+    S12 --> S13["Step 13: Advanced Audit Policies"]:::step
+    S13 --> S14["Step 14: AppLocker"]:::step
+    S14 --> S15["Step 15: Defender Exclusions"]:::step
+    S15 --> S16["Step 16: Printer Configuration"]:::step
+    S16 --> S17["Step 17: UWF Configuration\n(Unified Write Filter)"]:::critical
+
+    S17 --> R{UWF requires\nreboot?}
+    R -- Yes --> R1["Set RunOnce for resume\nshutdown /r /t 5"]:::reboot
+    R1 --> R2(["💻 System reboots\nEikonConfigurator resumes\nat Step 18"]):::start
+    R2 --> S18
+
+    R -- No --> S18["Step 18: Keyboard Filter"]:::step
+    S18 --> S19["Step 19: Shell Launcher Config\n(custom shell for kiosk user)"]:::step
+
+    S19 --> SEAL
+
+    classDef start fill:#1a3a5c,stroke:#58a6ff,color:#e6edf3
+    classDef action fill:#1c2d3f,stroke:#30363d,color:#e6edf3
+    classDef step fill:#1f1a2e,stroke:#bc8cff,color:#e6edf3
+    classDef critical fill:#2d1a2a,stroke:#f85149,color:#e6edf3
+    classDef reboot fill:#2d1a1a,stroke:#f85149,color:#f85149
+    classDef seal fill:#1a2d1a,stroke:#3fb950,color:#3fb950
+    </div>
+
+    <div class="mermaid">
+flowchart TD
+    SEAL(["⬆️ All 19 steps complete"]):::start
+    SEAL --> A["🔒 Seal Installation"]:::seal
+
+    A --> B["Enable LanmanServer\n(for account management)"]:::action
+    B --> C["Clean up RunOnce + registry state"]:::action
+    C --> D["Reset EikonUser password\n(random 32-char)"]:::action
+    D --> E["Set AutoLogon → EikonUser"]:::action
+    E --> F["Disable EikonAdmin account"]:::action
+    F --> G["Disable LanmanServer"]:::action
+    G --> H["Re-apply AppLocker policy"]:::action
+    H --> I["Re-enable UAC"]:::action
+    I --> J["Re-enable DontDisplayLastUserName"]:::action
+    J --> K["shutdown /r /t 10\n🔒 Final reboot into Kiosk Mode"]:::reboot
+    K --> L(["✅ Machine boots into\nsealed Kiosk Mode\n(EikonUser auto-login,\ncustom shell, UWF active)"]):::done
+
+    classDef start fill:#1a3a5c,stroke:#58a6ff,color:#e6edf3
+    classDef action fill:#1c2d3f,stroke:#30363d,color:#e6edf3
+    classDef seal fill:#1f1a2e,stroke:#bc8cff,color:#e6edf3
+    classDef reboot fill:#2d1a1a,stroke:#f85149,color:#f85149
+    classDef done fill:#0d2d0d,stroke:#3fb950,color:#3fb950
+    </div>
+
+    <div class="note">
+      <strong>💡 Resilience:</strong> Each step is tracked in the registry (<code>HKLM\SOFTWARE\EikonConfigurator\LastStep</code>).
+      If the machine reboots mid-way (e.g., after UWF DISM feature install), the RunOnce key ensures
+      EikonConfigurator resumes from the next uncompleted step automatically.
+    </div>
+  </div>
+</div>
+
+<div class="connector">▼</div>
+
+<!-- ================= UNIFIED PACKAGE ================= -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-number orange">PACKAGE</span>
+    <span class="phase-title">Unified Deployment Package Structure</span>
+    <span class="phase-desc">OneClickInstaller_Package/ &mdash; copy to USB or network share</span>
+  </div>
+  <div class="phase-body">
+    <pre style="background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:1.2rem;font-size:0.85rem;line-height:1.7;overflow-x:auto;color:var(--muted)"><span style="color:var(--blue);font-weight:600">OneClickInstaller_Package/</span>
+├── <span style="color:var(--orange)">INSTALL.bat</span>                 ← <span style="color:var(--text)">Entry point (double-click this)</span>
+├── <span style="color:var(--green)">OneClickInstaller.exe</span>        ← WPF installer app
+├── OneClickInstaller.exe.config
+├── <span style="color:var(--text)">installer-config.json</span>        ← All package + OS config definitions
+├── README.txt
+│
+├── <span style="color:var(--blue)">SW/</span>                          ← Software packages
+│   ├── .NET4.8/
+│   ├── dotnetfx35/sxs/
+│   ├── Microsoft Visual C++ 2008.../
+│   ├── Microsoft Visual C++ 2010.../
+│   ├── Microsoft Visual C++ 2012.../
+│   ├── Microsoft Visual C++ 2015-2022.../
+│   ├── 7Zip/
+│   ├── CH34x_Install_Windows_v3_4/
+│   ├── DirectX-SDK/
+│   ├── MySQL_JavaJRE_DB_Installer.../
+│   ├── Luts/
+│   ├── Notepad++/
+│   └── GVPPro/
+│
+└── <span style="color:var(--purple)">EikonConfigurator/</span>           ← OS lockdown (self-contained .NET 8)
+    ├── EikonConfigurator.exe
+    ├── hardware-config.json
+    ├── KioskLauncher.vbs
+    ├── NetFx3_Offline/
+    └── (runtime DLLs...)</pre>
+  </div>
+</div>
+
+<!-- ================= TIMELINE ================= -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-number">TIMELINE</span>
+    <span class="phase-title">End-to-End Execution Timeline</span>
+    <span class="phase-desc">Estimated durations for a typical target machine</span>
+  </div>
+  <div class="phase-body">
+    <div class="mermaid">
+gantt
+    title OneClickInstaller - Execution Timeline
+    dateFormat X
+    axisFormat %M min
+
+    section Phase 1: Bootstrap
+    .NET 3.5 check/install      :a1, 0, 180
+    .NET 4.8 check/install      :a2, after a1, 300
+    Reboot (if needed)          :crit, a3, after a2, 90
+
+    section Phase 2: Software
+    Disk Partitioning           :b0, after a3, 30
+    VC++ Redistributables (×6)  :b1, after b0, 120
+    7-Zip + CH34x Driver        :b2, after b1, 30
+    DirectX SDK                 :b3, after b2, 120
+    MySQL (Bootstrap+Server+WB) :b4, after b3, 300
+    MySQL Connector + Luts + N++ :b5, after b4, 60
+    DB Config + GVPPro          :b6, after b5, 60
+
+    section Phase 3: OS Lockdown
+    Steps 1-16 (config)        :c1, after b6, 300
+    Step 17: UWF + Reboot      :crit, c2, after c1, 90
+    Steps 18-19 + Seal         :c3, after c2, 60
+    Final Reboot → Kiosk       :crit, c4, after c3, 60
+    </div>
+    <div class="note">
+      <strong>⏱️ Total estimated time:</strong> ~25–35 minutes depending on hardware. Fully unattended — the user only needs to double-click INSTALL.bat once.
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  OneClickInstaller &bull; Generated March 2, 2026 &bull; Covers INSTALL.bat → OneClickInstaller.exe → EikonConfigurator → Sealed Kiosk
+</footer>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true,
+    background: '#161b22',
+    primaryColor: '#1f2937',
+    primaryBorderColor: '#30363d',
+    primaryTextColor: '#e6edf3',
+    secondaryColor: '#1a2d1a',
+    tertiaryColor: '#1f1a2e',
+    lineColor: '#58a6ff',
+    fontSize: '14px'
+  },
+  flowchart: {
+    curve: 'basis',
+    padding: 15,
+    htmlLabels: true,
+    useMaxWidth: true
+  },
+  gantt: {
+    useMaxWidth: true,
+    fontSize: 12,
+    barHeight: 24,
+    barGap: 6,
+    topPadding: 40,
+    sidePadding: 60
+  }
+});
+</script>
+</body>
+</html>

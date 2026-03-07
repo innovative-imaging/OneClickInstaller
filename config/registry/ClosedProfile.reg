@@ -1,0 +1,203 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu]
+"{450D8FBA-AD25-11D0-98A8-0800361B1103}"=dword:00000001 ; Remove My Documents icon from the Desktop (0 = Show / 1 = Remove)
+"{208D2C60-3AEA-1069-A2D7-08002B30309D}"=dword:00000001 ; Remove My Network Places from the Desktop (0 = Show / 1 = Remove)
+"{871C5380-42A0-1069-A2EA-08002B30309D}"=dword:00000001 ; Remove Internet Explorer from the Desktop (0 = Show / 1 = Remove)
+"{20D04FE0-3AEA-1069-A2D8-08002B30309D}"=dword:00000001 ; Remove My Computer from the Desktop (0 = Show / 1 = Remove)
+"{645FF040-5081-101B-9F08-00AA002F954E}"=dword:00000001 ; Remove Recycle Bin from the Desktop (0 = Show / 1 = Remove)
+"{59031a47-3f72-44a7-89c5-5595fe6b30ee}"=dword:00000001 ; Remove Personal folder from the Desktop (0 = Show / 1 = Remove)
+"{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}"=dword:00000001 ; Remove Control Panel from the Desktop (0 = Show / 1 = Remove)
+"{031E4825-7B94-4dc3-B131-E946B44C8DD5}"=dword:00000001 ; Remove Libraries folder from the Desktop (0 = Show / 1 = Remove)
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\explorer\HideDesktopIcons\NewStartPanel]
+"{645FF040-5081-101B-9F08-00AA002F954E}"=dword:00000001 ; Remove Recycle Bin from the Desktop (0 = Show / 1 = Remove)
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+"DisallowRun"=dword:00000001                ; Enable exclude list in DisallowRun subkey (0 = Disable / 1 = Enable)
+"ForceStartMenuLogoff"=dword:00000001       ; Force Logoff to the Start Menu
+"NoAddPrinter"=dword:00000000               ; Disable Add Printer option. It will be shown, but is restricted. (0 = Enable / 1 = Disable)
+"NoClose"=dword:00000001                    ; Remove and prevent access to the Shut Down, Restart, Sleep, and Hibernate commands. (0 = Show / 1 = Remove) 
+"NoCommonGroups"=dword:00000001             ; Remove common program groups from Start Menu. (0 = Show / 1 = Remove)
+"NoControlPanel"=dword:00000000             ; Disables Control Panel and Control Panel programs. (0 = Show / 1 = Remove) 
+"NoDeletePrinter"=dword:00000001            ; Prevent deletion of printers. (0 = Allow / 1 = Prevent)
+"NoDesktop"=dword:00000001                  ; Hide and disable all items on the desktop. (0 = Show / 1 = Remove) 
+"NoDriveTypeAutoRun"=dword:000000FF         ; Disables the Autoplay feature on all drives of the type specified. (0xFF = Disables Autoplay on all types of drives.) 
+"NoFind"=dword:00000001                     ; Remove Search link from Start Menu. (0 = Show / 1 = Remove) , WORKS HALF
+"NoNetworkConnections"=dword:00000001       ; Remove Network Connections from Start Menu. (0 = Show / 1 = Remove)
+"NoRecentDocsMenu"=dword:00000001           ; Remove Recent Items menu from Start Menu. (0 = Show / 1 = Remove)
+"NoRun"=dword:00000001                      ; Remove Run from Start menu, Internet Explorer, and Task Manager. (0 = Show run / 1 = Remove Run) 
+"NoSaveSettings"=dword:00000001             ; Don't save Desktop settings at exit. (0 = Disable / 1 = Enable) 
+"NoSetFolders"=dword:00000001               ; Remove programs on Settings menu. ((0 = Disable / 1 = Enable)) 
+"NoSetTaskbar"=dword:00000001               ; Prevent changes to Taskbar and Start Menu Settings. (0 = Disable / 1 = Enable) 
+"NoSimpleStartMenu"=dword:00000000          ; Force Classic Start Menu. (0 = Default Start Menu / 1 Classic Start Menu) 
+"NoSMHelp"=dword:00000001                   ; Remove Help menu from Start Menu. (0 = Show / 1 = Remove) 
+"NoStartMenuMorePrograms"=dword:00000000    ; Remove All Programs list from the Start Menu. (0 = Show / 1 = Remove) 
+"NoStartMenuMFUprogramsList"=dword:00000001 ; Remove frequent programs list from the Start Menu. (0 = Show / 1 = Remove) 
+"NoTrayContextMenu"=dword:00000001          ; Remove access to the context menus for the taskbar. (0 = Show / 1 = Remove) 
+"NoViewContextMenu"=dword:00000001          ; Remove Windows Explorer's default context menu. (0 = Show / 1 = Remove) 
+"NoWinKeys"=dword:00000001                  ; Turn off Windows+X hotkeys. (0 = Turn on / 1 = Turn Off) 
+"RestrictCPL"=dword:00000001                ; Show only specified Control Panel items, except those specified by entries in the RestrictCpl subkey. 
+"StartMenuChange"=dword:00000001			; Prevent changes to Start Menu. (0 = Allow / 1 = Prevent)
+"StartMenuLogoff"=dword:00000000            ; Remove Logoff from the Classic Start Menu. (0 = Show / 1 = Remove) 
+"NoChangeStartMenu"=dword:00000001          ; Remove drag-and-drop and context menus on the Start Menu. (0 = Show / 1 = Remove) 
+"NoViewOnDrive"=dword:0000001F				; Prevent access to drives from My Computer. (3FFFFFFF = All, 00000001 = A, 0000000F = A, B, C and D, 0000002F = Only E and Z drive, 00000031 = F onwards is visible)
+"NoDrives"=dword:0000001F					; Hide Drives in My Computer. (3FFFFFFF = All, 00000001 = A, 0000000F = A, B, C and D, 0000002F = Only E and Z drive, 00000031 = F onwards  is visible)
+"NoStartMenuPinnedList"=dword:00000001		; Remove the pinned list from Start menu. (0 = Show / 1 = Remove)
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisallowRun] ; Restrict Users from Running Specific Windows Programs
+"1"="iexplore.exe"                     ; Disallow launch of Internet Explorer 
+
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer]
+"TaskbarNoPinnedList"=dword:00000001				; Remove pinned programs from the Taskbar. (0 = Show / 1 = Remove)
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Advanced]
+"StartMenuInit"=dword:00000004         ; The StartMenuInit registry value stores the major version of the shell that the user has seen most recently. The possible values are: 0: The user has never run the shell (Explorer.exe). 1: Internet Explorer 4 shell. 2: Windows XP shell. 3: Windows Vista shell. 4: Windows 7 shell.
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+"Hidden"=dword:00000000                				   ; Show hidden files. (0 = Hide hidden files / 1 = Show hidden files) 
+"Start_ShowMyComputer"=dword:00000000                  ; Show My Computer in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowControlPanel"=dword:00000000 			   ; Show Control Panel in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowMyMusic"=dword:00000000                     ; Show My Music folder in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowMyPics"=dword:00000000                      ; Show My Pictures folder in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowMyDocs"=dword:00000000                      ; Show My Documents folder in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowUser"=dword:00000000                        ; Show My Personal folder in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowDownloads"=dword:00000000                   ; Show Downloads folder in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowMyGames"=dword:00000000                     ; Show Games folder in the Start menu. (0 = Remove / 1 = Show)
+"Start_ShowRecordedTv"=dword:00000000                  ; Show Recorded TV folder in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowVideos"=dword:00000000                      ; Show Videos folder in the Start menu. (0 = Remove / 1 = Show)
+"Start_ShowSetProgramAccessAndDefaults"=dword:00000000 ; Show Default Programs folder in the Start menu. (0 = Remove / 1 = Show)
+"Start_ShowPrinters"=dword:00000000                    ; Show Devices and Printers in the Start menu. (0 = Remove / 1 = Show)
+"Start_ShowHelp"=dword:00000000                        ; Show Help in the Start menu. (0 = Remove / 1 = Show)
+"StartMenuFavorites"=dword:00000000                    ; Show Favorites menu in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowRun"=dword:00000001                         ; Show Run... option in the Start menu. (0 = Remove / 1 = Show)
+"Start_ShowRecentDocs"=dword:00000000                  ; Show Recent documents menu in the Start menu. (0 = Remove / 1 = Show) 
+"Start_ShowSearchPrograms"=dword:00000000
+"Start_SearchFiles"=dword:00000000                     ; When searching in Start Menu, also search for files (using show more results). (0 = Disable / 1 = Enable)
+"Start_SearchPrograms"=dword:00000000                  ; When searching in Start Menu, do not search in Programs.
+"Start_NotifyNewApps"=dword:00000000                   ; Highlight newly installed programs. (0 = Disable / 1 = Highlight)
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableChangePassword"=dword:00000001 ; Remove Change Password button on the Windows Security dialog box. (0 = Show / 1 = Remove) 
+"DisableRegistryTools"= dword:00000001 ; Prevent access to registry editing tools. (0 = Allow / 1 = Prevent) 
+"DisableTaskMgr"=dword:00000001        ; Disable Task Manager. (0 = Enable / 1 = Disable) 
+"NoDispAppearancePage"=dword:00000001  ; Prevent changing Window color and appearance. (0 = Allow / 1 = Prevent)
+"NoDispBackgroundPage"=dword:00000001  ; Prevent changing desktop icons in Appearance and Personalisation. (0 = Allow / 1 = Prevent) 
+
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Installer]
+"DisableMedia"=dword:00000001          ; Prevent removable media source for any install. (0 = Allow / 1 = Prevent)
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"HideFastUserSwitching"=dword:00000001   ; Disable the Switch user option in Start menu. (1 = Disable / 0 = Enable)
+"DisableLockWorkstation"=dword:00000001  ; Disable the Lock option in Start menu. (1 = Disable / 0 = Enable)
+
+[HKEY_CURRENT_USER\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+"Scancode Map"=hex:00,00,00,00,00,00,00,00,03,00,00,00,00,00,5b,e0,00,00,5c,e0,\
+  00,00,00,00
+    
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
+"HelpQualifiedRootDir"=""
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders]
+"AppData"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,\
+  00,6f,00,61,00,6d,00,69,00,6e,00,67,00,00,00
+"Desktop"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,44,00,65,00,73,00,6b,00,74,00,6f,00,70,00,00,00
+"Favorites"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,46,00,61,00,76,00,6f,00,72,00,69,00,74,00,65,00,73,\
+  00,00,00
+"NetHood"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,\
+  00,6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,\
+  73,00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,\
+  00,4e,00,65,00,74,00,77,00,6f,00,72,00,6b,00,20,00,53,00,68,00,6f,00,72,00,\
+  74,00,63,00,75,00,74,00,73,00,00,00
+"Personal"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,44,00,6f,00,63,00,75,00,6d,00,65,00,6e,00,74,00,73,\
+  00,00,00
+"PrintHood"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,\
+  00,6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,\
+  73,00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,\
+  00,50,00,72,00,69,00,6e,00,74,00,65,00,72,00,20,00,53,00,68,00,6f,00,72,00,\
+  74,00,63,00,75,00,74,00,73,00,00,00
+"Programs"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,\
+  00,6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,\
+  73,00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,\
+  00,53,00,74,00,61,00,72,00,74,00,20,00,4d,00,65,00,6e,00,75,00,5c,00,50,00,\
+  72,00,6f,00,67,00,72,00,61,00,6d,00,73,00,00,00
+"Recent"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,4c,\
+  00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,00,\
+  6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,73,\
+  00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,00,\
+  52,00,65,00,63,00,65,00,6e,00,74,00,00,00
+"SendTo"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,4c,\
+  00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,00,\
+  6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,73,\
+  00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,00,\
+  53,00,65,00,6e,00,64,00,54,00,6f,00,00,00
+"Templates"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,\
+  00,6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,\
+  73,00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,\
+  00,54,00,65,00,6d,00,70,00,6c,00,61,00,74,00,65,00,73,00,00,00
+"My Pictures"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,\
+  00,4c,00,45,00,25,00,5c,00,50,00,69,00,63,00,74,00,75,00,72,00,65,00,73,00,\
+  00,00
+"Local AppData"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,\
+  49,00,4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,\
+  00,4c,00,6f,00,63,00,61,00,6c,00,00,00
+"Cache"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,4c,\
+  00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,4c,00,\
+  6f,00,63,00,61,00,6c,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,73,00,6f,00,66,\
+  00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,00,54,00,65,00,\
+  6d,00,70,00,6f,00,72,00,61,00,72,00,79,00,20,00,49,00,6e,00,74,00,65,00,72,\
+  00,6e,00,65,00,74,00,20,00,46,00,69,00,6c,00,65,00,73,00,00,00
+"Cookies"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,52,\
+  00,6f,00,61,00,6d,00,69,00,6e,00,67,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,\
+  73,00,6f,00,66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,\
+  00,43,00,6f,00,6f,00,6b,00,69,00,65,00,73,00,00,00
+"History"=hex(2):25,00,55,00,53,00,45,00,52,00,50,00,52,00,4f,00,46,00,49,00,\
+  4c,00,45,00,25,00,5c,00,41,00,70,00,70,00,44,00,61,00,74,00,61,00,5c,00,4c,\
+  00,6f,00,63,00,61,00,6c,00,5c,00,4d,00,69,00,63,00,72,00,6f,00,73,00,6f,00,\
+  66,00,74,00,5c,00,57,00,69,00,6e,00,64,00,6f,00,77,00,73,00,5c,00,48,00,69,\
+  00,73,00,74,00,6f,00,72,00,79,00,00,00
+  
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders\New]
+
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders]
+"AppData"="C:\Users\OTUser\AppData\Roaming"
+"Cookies"="C:\Users\OTUser\AppData\Roaming\Microsoft\Windows\Cookies"
+"Desktop"="C:\Users\OTUser\Desktop"
+"Favorites"="C:\Users\OTUser\Favorites"
+"NetHood"="C:\Users\OTUser\AppData\Roaming\Microsoft\Windows\Network Shortcuts"
+"Personal"="C:\Users\OTUser\Documents"
+"PrintHood"="C:\Users\OTUser\AppData\Roaming\Microsoft\Windows\Printer Shortcuts"
+"Recent"="C:\Users\OTUser\AppData\Roaming\Microsoft\Windows\Recent"
+"SendTo"="C:\Users\OTUser\AppData\Roaming\Microsoft\Windows\SendTo"
+"Start Menu"="C:\\Policy\\ClosedStartMenu"
+"Templates"="C:\Users\OTUser\AppData\Roaming\Microsoft\Windows\Templates"
+"Programs"="C:\\Policy\\ClosedStartMenu\\Programs"
+"Startup"="C:\\Policy\\ClosedStartMenu\\Programs\\Startup"
+"Local AppData"="C:\Users\OTUser\AppData\Local"
+"Cache"="C:\Users\OTUser\AppData\Local\Microsoft\Windows\Temporary Internet Files"
+"History"="C:\Users\OTUser\AppData\Local\Microsoft\Windows\History"
+"My Pictures"="C:\Users\OTUser\Pictures"
+"Fonts"="C:\Windows\Fonts"
+"My Music"="C:\Users\OTUser\Music"
+"Administrative Tools"="C:\\Policy\\ClosedStartMenu\\Empty"
+"CD Burning"="C:\Users\OTUser\AppData\Local\Microsoft\Windows\Burn\Burn"
+"My Video"=""
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders]
+"Startup"=hex(2):43,00,3a,00,5c,00,50,00,6f,00,6c,00,69,00,63,00,79,00,5c,00,\
+  43,00,4c,00,4f,00,53,00,45,00,44,00,53,00,54,00,41,00,52,00,54,00,4d,00,45,\
+  00,4e,00,55,00,5c,00,50,00,52,00,4f,00,47,00,52,00,41,00,4d,00,53,00,5c,00,\
+  53,00,54,00,41,00,52,00,54,00,55,00,50,00,00,00
+"Start Menu"=hex(2):43,00,3a,00,5c,00,50,00,6f,00,6c,00,69,00,63,00,79,00,5c,\
+  00,43,00,4c,00,4f,00,53,00,45,00,44,00,53,00,54,00,41,00,52,00,54,00,4d,00,\
+  45,00,4e,00,55,00,00,00

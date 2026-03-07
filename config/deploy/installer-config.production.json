@@ -1,0 +1,29 @@
+{
+  "$schema": "../installer-config.schema.json",
+  "installerConfig": {
+    "name": "Professional Software Installer",
+    "version": "1.0.0",
+    "description": "One-click installation - PRODUCTION (strict hardware checks)"
+  },
+
+  "diskPartitioning": {
+    "enabled": true,
+    "diskNumber": 0,
+    "partitions": [
+      { "driveLetter": "C", "sizeGB": 60, "label": "OS" },
+      { "driveLetter": "D", "sizeGB": 15, "label": "App" },
+      { "driveLetter": "E", "sizeGB": 0, "label": "Data", "useRemainingSpace": true }
+    ]
+  },
+
+  "osConfiguration": {
+    "enabled": true,
+    "relativePath": "EikonConfigurator\\EikonConfigurator.exe",
+    "description": "Kiosk OS Configuration (19 steps)",
+    "autoReboot": true,
+    "bypassHardwareCheck": false,
+    "logPath": null,
+    "dryRun": false,
+    "adminPassword": null
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "installer-config.schema.json",
+  "title": "OneClickInstaller Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "installerConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name":        { "type": "string" },
+        "version":     { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name", "version"]
+    },
+    "diskPartitioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled":    { "type": "boolean" },
+        "diskNumber": { "type": "integer", "minimum": 0 },
+        "partitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "driveLetter":       { "type": "string", "minLength": 1, "maxLength": 1 },
+              "sizeGB":            { "type": "integer", "minimum": 0 },
+              "label":             { "type": "string" },
+              "useRemainingSpace": { "type": "boolean" }
+            },
+            "required": ["driveLetter", "sizeGB", "label"]
+          }
+        }
+      },
+      "required": ["enabled", "diskNumber", "partitions"]
+    },
+    "softwarePackages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name":            { "type": "string" },
+          "relativePath":    { "type": "string" },
+          "installType":     { "type": "string", "enum": ["EXE", "MSI", "INF", "COPY", "DISM", "MYSQL_CONSOLE"] },
+          "installArgs":     { "type": "string" },
+          "required":        { "type": "boolean" },
+          "description":     { "type": "string" },
+          "copyDestination": { "type": "string" },
+          "postInstall": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "configureMySQL":  { "type": "boolean" },
+              "timeoutSeconds":  { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "required": ["name", "relativePath", "installType"]
+      }
+    },
+    "finalInstallPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name":         { "type": "string" },
+        "relativePath": { "type": "string" },
+        "installType":  { "type": "string", "enum": ["EXE", "MSI", "INF", "COPY", "DISM", "MYSQL_CONSOLE"] },
+        "installArgs":  { "type": "string" },
+        "description":  { "type": "string" }
+      },
+      "required": ["name", "relativePath", "installType"]
+    },
+    "mysqlConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "username":  { "type": "string" },
+        "password":  { "type": "string" },
+        "database":  { "type": "string" },
+        "sqlScript": { "type": "string" }
+      },
+      "required": ["username", "database", "sqlScript"]
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxInstallTimeMinutes": { "type": "integer", "minimum": 1 },
+        "retryAttempts":         { "type": "integer", "minimum": 0 },
+        "showDetailedProgress":  { "type": "boolean" },
+        "createInstallLog":      { "type": "boolean" }
+      }
+    },
+    "postInstallScripts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled":       { "type": "boolean" },
+        "description":   { "type": "string" },
+        "scripts":       { "type": "array", "items": { "type": "string" } },
+        "cleanupScript": { "type": ["string", "null"] }
+      },
+      "required": ["enabled", "scripts"]
+    },
+    "osConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled":              { "type": "boolean" },
+        "relativePath":         { "type": "string" },
+        "description":          { "type": "string" },
+        "autoReboot":           { "type": "boolean" },
+        "bypassHardwareCheck":  { "type": "boolean" },
+        "logPath":              { "type": ["string", "null"] },
+        "dryRun":               { "type": "boolean" },
+        "adminPassword":        { "type": ["string", "null"] }
+      },
+      "required": ["enabled", "relativePath"]
+    }
+  }
+}

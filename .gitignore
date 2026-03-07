@@ -1,0 +1,98 @@
+# ============================================
+# OneClickInstaller — .gitignore
+# ============================================
+
+# ----- Build outputs -----
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# ----- .NET / MSBuild artifacts -----
+*.exe
+*.dll
+*.pdb
+*.cache
+*.ilk
+*.log
+*.lib
+*.exp
+*.map
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ----- WiX (MSI installer) artifacts -----
+*.wixobj
+*.wixpdb
+*.wixproj.user
+
+# ----- NuGet -----
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*.config
+!**/packages.config
+
+# ----- Visual Studio / Rider -----
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+[Tt]est[Rr]esult*/
+[Dd]ebugPublic/
+[Rr]eleases/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+[Ll]og/
+
+# ----- Publish / Deploy outputs -----
+publish/
+OEM_Release/
+
+# ----- Logs -----
+*.log
+build_errors.txt
+build_log.txt
+msbuild.log
+
+# ----- Large binary assets (not tracked in Git) -----
+# Software installer packages (multi-GB)
+All_SW/
+# Assembled deployment package (built by scripts)
+deploy/output/
+
+# ----- Secrets (never commit) -----
+secrets.json
+
+# ----- Runtime artifacts -----
+OS_ClosedLoop.log
+oneclickinstaller_log.txt
+installer_log.txt
+install_bootstrap.log
+
+# ----- Office / binary docs -----
+*.xlsx
+*.xls
+
+# ----- OS and editor files -----
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~

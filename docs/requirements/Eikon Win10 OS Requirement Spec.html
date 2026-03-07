@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 1000px; margin: 0 auto; color: #333; }
+h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+h2 { color: #2980b9; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+h3 { color: #34495e; margin-top: 20px; }
+h4 { color: #7f8c8d; margin-top: 15px; margin-bottom: 5px; font-weight: bold; }
+code { background-color: #f0f0f0; padding: 2px 4px; border-radius: 4px; font-family: Consolas, monospace; color: #c7254e; }
+pre { background-color: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; border: 1px solid #e9ecef; }
+ul { margin-bottom: 15px; }
+li { margin-bottom: 5px; }
+table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 0.9em; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+th { background-color: #f2f2f2; color: #333; font-weight: bold; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+tr:hover { background-color: #f5f5f5; }
+.note { background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 4px; margin: 10px 0; }
+</style>
+</head>
+<body>
+<h1>Technical Specification: Eikon Secure Closed-Loop Environment</h1>
+
+<h2>1. Introduction</h2>
+<p>This document provides the low-level technical configuration details for the Eikon Closed-Loop Windows OS. It covers the end-to-end deployment pipeline: the <b>OneClickInstaller</b> (WPF application for automated software provisioning) and the <b>EikonConfigurator</b> (19-step OS hardening and kiosk lockdown tool).</p>
+<p>All configuration is JSON-driven. Software packages are defined in <code>installer-config.json</code>. Hardware and OS policies are defined in <code>hardware-config.json</code>.</p>
+
+<h2>2. OneClickInstaller &mdash; Software Provisioning</h2>
+
+<h3>2.1 Overview</h3>
+<p><b>Technology</b>: .NET Framework 4.8 WPF application.<br>
+<b>UI</b>: Real-time progress display with per-package status indicators, overall/current progress bars, elapsed/estimated time, and scrollable installation log.<br>
+<b>Error Strategy</b>: Best-effort &mdash; individual package failures are logged but do not abort subsequent steps. OS configuration is skipped if any prior step failed.</p>
+
+<h3>2.2 Installation Pipeline</h3>
+<table>
+<tr><th>Stage</th><th>Description</th></tr>
+<tr><td>1. Admin Check</td><td>Verifies the process is running with Administrator privileges.</td></tr>
+<tr><td>2. File Verification</td><td>Pre-flight check for all package files. Missing packages are skipped.</td></tr>
+<tr><td>3. Disk Partitioning</td><td>Shrinks C:, creates D: and E: partitions (configurable).</td></tr>
+<tr><td>4. Software Packages</td><td>Installs packages in JSON-defined order (VCRedists, drivers, SDK, MySQL, utilities).</td></tr>
+<tr><td>5. MySQL Configuration</td><td>Creates database, executes SQL seed script.</td></tr>
+<tr><td>6. Final Package</td><td>Installs GVPPro application (after database is ready).</td></tr>
+<tr><td>7. Post-Install Scripts</td><td>Runs configurable batch scripts from the application directory.</td></tr>
+<tr><td>8. OS Configuration</td><td>Launches EikonConfigurator for 19-step kiosk lockdown (only if 0 prior failures).</td></tr>
+</table>
+
+<h3>2.3 Disk Partitioning</h3>
+<p><b>Configuration</b>: <code>installer-config.json</code> &rarr; <code>diskPartitioning</code></p>
+<ul>
+<li><b>Disk</b>: 0 (system disk).</li>
+<li><b>C:</b> Shrink to <b>60 GB</b> (label: &ldquo;OS&rdquo;).</li>
+<li><b>D:</b> Create <b>15 GB</b> (label: &ldquo;App&rdquo;).</li>
+<li><b>E:</b> Remaining space (label: &ldquo;Data&rdquo;, <code>useRemainingSpace: true</code>).</li>
+<li>Skips if target partitions already exist.</li>
+</ul>
+
+<h3>2.4 Supported Installation Types</h3>
+<table>
+<tr><th>Type</th><th>Mechanism</th></tr>
+<tr><td><code>MSI</code></td><td><code>msiexec.exe /i ... /quiet /norestart ALLUSERS=1</code></td></tr>
+<tr><td><code>EXE</code></td><td>Direct execution with configured <code>/quiet</code> arguments</td></tr>
+<tr><td><code>COPY</code></td><td>File/directory copy to target path</td></tr>
+<tr><td><code>DISM</code></td><td>7-Zip extraction + <code>dism.exe /Online /Add-Package</code></td></tr>
+<tr><td><code>INF</code></td><td><code>pnputil.exe /add-driver ... /install</code></td></tr>
+<tr><td><code>MYSQL_CONSOLE</code></td><td><code>MySQLInstallerConsole.exe community install ...</code></td></tr>
+</table>
+<p>Exit code <code>3010</code> (reboot required) is treated as success for MSI/EXE/INF packages.</p>
+
+<h3>2.5 MySQL Configuration</h3>
+<p><b>Configuration</b>: <code>installer-config.json</code> &rarr; <code>mysqlConfig</code></p>
+<ol>
+<li>Installs MySQL Installer bootstrapper (MSI).</li>
+<li>Runs <code>MySQLInstallerConsole.exe</code> to install MySQL Server 8.0.21 + Workbench (silent).</li>
+<li>Waits for <code>MySQL80</code> service to reach RUNNING state (up to 5 minutes).</li>
+<li>Creates database: <code>CREATE DATABASE IF NOT EXISTS dcmdetails</code>.</li>
+<li>Executes SQL seed script: <code>dcmdetails_20251217.sql</code>.</li>
+</ol>
+
+<h3>2.6 Post-Install Scripts</h3>
+<p><b>Configuration</b>: <code>installer-config.json</code> &rarr; <code>postInstallScripts</code></p>
+<pre>{
+  "enabled": true,
+  "scripts": [
+    "D:\\GVP-Pro\\App\\PostInstallScript _IP.bat",
+    "D:\\GVP-Pro\\App\\PostInstallScript.bat"
+  ],
+  "cleanupScript": "D:\\GVP-Pro\\App\\PostInstallScript _RemoveIPFiles.bat"
+}</pre>
+<ul>
+<li>Scripts are executed using <b>64-bit cmd.exe</b> (<code>SysNative\cmd.exe</code>) to avoid WOW64 filesystem redirection.</li>
+<li>Missing scripts are skipped with a warning.</li>
+<li>Cleanup script runs only if all scripts succeeded.</li>
+<li>Timeout: 5 minutes per script.</li>
+</ul>
+
+<h3>2.7 OS Configuration Launch</h3>
+<p><b>Configuration</b>: <code>installer-config.json</code> &rarr; <code>osConfiguration</code></p>
+<ul>
+<li><b>Precondition</b>: Only runs if <b>all</b> prior stages completed with 0 failures.</li>
+<li>Copies <code>EikonConfigurator</code> folder to <code>C:\EikonConfigurator\</code>.</li>
+<li>Launches <code>EikonConfigurator.exe</code> with configurable arguments (e.g., <code>--bypass-hardware-check</code>).</li>
+<li>Streams stdout/stderr to the installation log in real-time.</li>
+<li>EikonConfigurator manages its own reboot/shutdown cycle.</li>
+</ul>
+
+<h3>2.8 Shutdown Handling</h3>
+<ul>
+<li>When OS configuration is active and completes successfully, the UI sets <code>_systemShuttingDown = true</code>.</li>
+<li>Exit button changes to &ldquo;Restarting...&rdquo; and is disabled.</li>
+<li>Status: <i>&ldquo;Installation complete! The system will restart to finalize OS configuration, then shut down automatically.&rdquo;</i></li>
+<li>EikonConfigurator triggers <code>shutdown.exe</code> internally (the WPF app does not call shutdown).</li>
+</ul>
+
+<hr>
+
+<h2>3. EikonConfigurator &mdash; OS Hardening (19 Steps)</h2>
+
+<h3>3.1 Hardware &amp; System Validation (Step 1)</h3>
+<p><b>Validation Logic</b> (<code>ValidateHardwareOrDie</code>), configurable via <code>hardware-config.json</code>:</p>
+<ul>
+<li><b>CPU Model</b>: Checks processor name against allowed families list (e.g., i3, i5, i7, Xeon).</li>
+<li><b>CPU Cores</b>: <code>Win32_Processor.NumberOfLogicalProcessors</code> &gt;= configurable minimum (default: 4).</li>
+<li><b>RAM</b>: <code>Win32_ComputerSystem.TotalPhysicalMemory</code> &gt;= configurable minimum (default: 16 GB, with 5% tolerance for firmware reserves).</li>
+<li><b>Network</b>: <code>Win32_NetworkAdapter</code> (MediaTypeId=0, Physical=True) Count &gt;= configurable minimum (default: 2).</li>
+<li><b>Disk Size</b>: Total capacity across fixed disks &gt;= configurable minimum (default: 1000 GB).</li>
+<li><b>Bypass</b>: <code>--bypass-hardware-check</code> flag skips all validation (for VM testing).</li>
+</ul>
+
+<h3>3.2 Windows Features (Step 2)</h3>
+<p><b>DISM</b> (<code>/Online /Enable-Feature /NoRestart</code>):</p>
+<ul>
+<li><code>Client-KeyboardFilter</code> &mdash; WEKF support</li>
+<li><code>Client-UnifiedWriteFilter</code> &mdash; UWF support</li>
+<li><code>Client-EmbeddedLogon</code> &mdash; Login customization</li>
+<li><code>Client-EmbeddedShellLauncher</code> &mdash; Per-user shell mapping</li>
+<li><code>Printing-Foundation-Features</code> &mdash; Print spooler</li>
+<li><code>Printing-XPSServices-Features</code> &mdash; XPS printing</li>
+</ul>
+<p>Feature activation may require reboot; detected and handled in Step 17 (UWF).</p>
+
+<h3>3.3 Hardware Configuration (Step 3)</h3>
+<p><b>Network</b> (<code>ApplyNetworkSettings</code>):</p>
+<ul>
+<li>Renames adapters by keyword matching (e.g., &ldquo;ImageLink&rdquo;, &ldquo;Realtek&rdquo;).</li>
+<li>Applies static IP or DHCP per adapter from <code>hardware-config.json</code>.</li>
+<li>Sets advanced driver parameters (Jumbo Packet=9014, EEE disabled for imaging adapter).</li>
+</ul>
+<p><b>Device Hardening</b> (<code>ConfigureDeviceHardening</code>):</p>
+<ul>
+<li>Increases wireless adapter metric to 500 (deprioritizes WiFi).</li>
+<li>Disables Bluetooth and audio devices via <code>Disable-PnpDevice</code>.</li>
+</ul>
+
+<h2>4. OS Configuration &amp; Tuning</h2>
+
+<h3>4.1 Scheduled Tasks (Step 4)</h3>
+<p><b>Task Scheduler</b> (<code>schtasks /Change /TN "..." /Disable</code>):</p>
+<ul>
+<li><code>Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser</code> (Telemetry)</li>
+<li><code>Microsoft\Windows\Customer Experience Improvement Program\Consolidator</code> (Telemetry)</li>
+<li><code>Microsoft\Windows\Defrag\ScheduledDefrag</code> (Maintenance)</li>
+<li><code>Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector</code> (Maintenance)</li>
+<li><code>Microsoft\Windows\Maintenance\WinSAT</code> (Performance Assessment)</li>
+<li><code>Microsoft\Windows\NlaSvc\WiFiTask</code> (Network)</li>
+<li><code>Microsoft\Windows\Windows Media Sharing\UpdateLibrary</code> (Media)</li>
+</ul>
+
+<h3>4.2 OS Tuning (Step 5)</h3>
+<p><b>Power Management</b> (<code>powercfg</code>):</p>
+<ul>
+<li><b>Scheme</b>: Ultimate Performance (<code>e9a42b02-d5df-448d-aa00-03f14749eb61</code>).<br>
+    <i>Command</i>: <code>powercfg -duplicatescheme e9a42b02...</code> followed by <code>powercfg -setactive ...</code>.<br>
+    <i>Fallback</i>: High Performance (<code>8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c</code>).</li>
+<li><b>AC Standby/Monitor</b>: <code>powercfg -change -standby-timeout-ac 0</code> / <code>-monitor-timeout-ac 0</code> (Never).</li>
+<li><b>Hibernation</b>: <code>powercfg -h off</code>.</li>
+</ul>
+<p><b>Registry Optimization</b>:</p>
+<table>
+<tr><th>Path</th><th>Key</th><th>Value</th><th>Type</th><th>Description</th></tr>
+<tr><td><code>HKLM\...\Memory Management</code></td><td><code>PagingFiles</code></td><td>(Empty)</td><td>MultiString</td><td><b>Disable PageFile</b></td></tr>
+<tr><td><code>HKLM\...\FileSystem</code></td><td><code>NtfsDisable8dot3NameCreation</code></td><td>1</td><td>DWord</td><td><b>Performance</b></td></tr>
+<tr><td><code>HKLM\...\FileSystem</code></td><td><code>NtfsDisableLastAccessUpdate</code></td><td>1</td><td>DWord</td><td><b>Performance</b></td></tr>
+<tr><td><code>HKLM\...\TimeZoneInformation</code></td><td><code>RealTimeIsUniversal</code></td><td>1</td><td>DWord</td><td><b>UTC BIOS Time</b></td></tr>
+<tr><td><code>HKLM\...\WindowsUpdate\AU</code></td><td><code>NoAutoUpdate</code></td><td>1</td><td>DWord</td><td><b>Disable WU</b></td></tr>
+<tr><td><code>HKLM\...\Winlogon</code></td><td><code>EnableFirstLogonAnimation</code></td><td>0</td><td>DWord</td><td><b>Disable First Logon Animation</b></td></tr>
+</table>
+<p><b>Logon Audit</b>: <code>auditpol /set /subcategory:"Logon" /success:enable /failure:enable</code></p>
+
+<h2>5. Security Hardening</h2>
+
+<h3>5.1 User Accounts &amp; Groups (Step 6)</h3>
+<p><b>Account Policies</b> (<code>net accounts</code>):</p>
+<ul>
+<li><i>Command</i>: <code>net accounts /minpwlen:14 /maxpwage:unlimited /minpwage:0 /uniquepw:0 /lockoutthreshold:5 /lockoutduration:15 /lockoutwindow:15</code></li>
+</ul>
+<p><b>User Accounts</b>:</p>
+<ul>
+<li><b>EikonUser</b>: Primary kiosk user. Created via <code>UserPrincipal</code>, added to <code>Administrators</code>.
+  <ul>
+    <li><b>Password</b>: Random 32-character secure password (regenerated at seal).</li>
+    <li><b>PasswordNeverExpires</b>: True.</li>
+    <li><b>AutoLogon</b>: Configured via Winlogon registry keys.</li>
+  </ul>
+</li>
+<li><b>EikonAdmin</b>: Dedicated administration account. Added to <code>Administrators</code> group.
+  <ul>
+    <li><b>Password</b>: <code>N1viH@rd0$Secure!</code></li>
+    <li><b>State</b>: Enabled. Not visible on logon screen (<code>DontDisplayLastUserName=1</code>).</li>
+    <li><b>Access</b>: Ctrl+Alt+Del &rarr; Sign Out &rarr; type EikonAdmin credentials.</li>
+  </ul>
+</li>
+<li><b>Built-in Administrator</b>: Disabled (SID-500).</li>
+<li><b>Guest</b>: Disabled (<code>net user Guest /active:no</code>).</li>
+<li><b>Administrators Group Sanitization</b>: Removes all unauthorized members; only EikonAdmin and EikonUser remain.</li>
+</ul>
+
+<h3>5.2 Registry Hardening (Step 7)</h3>
+
+<h4>5.2.1 System Security (<code>ConfigureOsHardening</code>)</h4>
+<ul>
+<li>Applies privilege rights via SecEdit (SetValue, SetDebug, SetSystemTime for Admins/SYSTEM).</li>
+<li>Temporarily disables UAC (<code>EnableLUA=0</code>) for headless execution; re-enabled at seal.</li>
+<li>Hides last username on logon (<code>DontDisplayLastUserName=1</code>).</li>
+<li>Enforces Ultimate Performance power plan.</li>
+<li>Restricts HTMLHelp zone to 0.</li>
+</ul>
+
+<h4>5.2.2 IE Hardening (<code>ConfigureIEHardening</code>)</h4>
+<ul>
+<li><code>Restrictions\NoBrowserContextMenu</code>: <b>1</b></li>
+<li><code>Control Panel\*Tab</code>: <b>1</b> (Hide all tabs)</li>
+<li><code>Toolbars\Restrictions\NoNavBar</code>: <b>1</b></li>
+<li><code>Main\AlwaysShowMenus</code>: <b>0</b></li>
+</ul>
+
+<h4>5.2.3 User Hive Hardening (<code>ApplyUserHardening</code>)</h4>
+<p>Applied to <code>C:\Users\Default\NTUSER.DAT</code> (offline hive mount as <code>HKU\EikonTemp</code>). All new user profiles inherit these policies.</p>
+
+<p><b>Explorer Shell Restrictions</b> (<code>HKCU\...\Policies\Explorer</code>):</p>
+<table>
+<tr><th>Value Name</th><th>Data</th><th>Effect</th></tr>
+<tr><td><code>NoDrives</code></td><td><code>0x04</code></td><td>Hide C: drive</td></tr>
+<tr><td><code>NoViewOnDrive</code></td><td><code>0x04</code></td><td>Block browsing C:</td></tr>
+<tr><td><code>NoRun</code></td><td>1</td><td>Disable Run Command</td></tr>
+<tr><td><code>NoWinKeys</code></td><td>1</td><td>Disable Win+X Hotkeys</td></tr>
+<tr><td><code>NoFind</code></td><td>1</td><td>Disable Search</td></tr>
+<tr><td><code>NoTrayContextMenu</code></td><td>1</td><td>Disable Taskbar Tray Right-Click</td></tr>
+<tr><td><code>NoClose</code></td><td>1</td><td>Remove Shutdown/Restart options</td></tr>
+<tr><td><code>HideSCAVolume</code></td><td>1</td><td>Hide audio status icon</td></tr>
+<tr><td><code>HideSCANetwork</code></td><td>1</td><td>Hide network status icon</td></tr>
+<tr><td><code>NoControlPanel</code></td><td>1</td><td>Block Control Panel</td></tr>
+<tr><td><code>NoSetFolders</code></td><td>1</td><td>Block Settings folders</td></tr>
+<tr><td><code>NoSetTaskbar</code></td><td>1</td><td>Block taskbar settings</td></tr>
+<tr><td><code>NoNetworkConnections</code></td><td>1</td><td>Block network connections UI</td></tr>
+<tr><td><code>DisallowRun</code></td><td>1</td><td>Enable App Blocklist</td></tr>
+</table>
+
+<p><b>Start Menu Lockdown</b>: <code>NoStartMenuMorePrograms</code>, <code>NoCommonStartMenu</code>, <code>NoSMHelp</code>, <code>NoRecentDocsHistory</code>, <code>ClearRecentDocsOnExit</code>, <code>NoChangeStartMenu</code>, <code>NoFavoritesMenu</code>, <code>NoSMMyDocs</code>, <code>NoSMMyPictures</code>, <code>NoStartMenuMyMusic</code>, <code>NoUserFolderInStartMenu</code>.</p>
+
+<p><b>Taskbar Lockdown</b>: Hides Task View button, People band, Search box, Notification Center. <code>TaskbarSizeMove=0</code>, <code>TaskbarNoDragToolbar=1</code>, <code>NoToolbarsOnTaskbar=1</code>, <code>NoPinningToTaskbar=1</code>.</p>
+
+<p><b>System Policies</b> (<code>HKCU\...\Policies\System</code>):</p>
+<ul>
+<li><code>DisableTaskMgr=1</code> &mdash; Task Manager disabled.</li>
+<li><code>DisableRegistryTools=1</code> &mdash; Registry editing disabled.</li>
+</ul>
+
+<p><b>Start Layout Lockdown</b>:</p>
+<ul>
+<li>Deploys empty <code>LayoutModificationTemplate</code> XML to <code>C:\Windows\StartLayouts\EikonStartLayout.xml</code>.</li>
+<li>Sets <code>LockedStartLayout=1</code> with layout path in HKCU policy.</li>
+<li>RunOnce task re-imports empty layout at first login.</li>
+</ul>
+
+<p><b>Start Sidebar Folder Hiding (HKLM)</b>: Applies <code>AllowPinnedFolder*=0</code> via PolicyManager CSP (Documents, Downloads, FileExplorer, Music, Network, PersonalFolder, Pictures, Settings, Videos).</p>
+
+<h4>5.2.4 DisallowRun App Blocklist (43 Executables)</h4>
+<p>Applied via <code>HKCU\...\Policies\Explorer\DisallowRun</code> subkey:</p>
+<table>
+<tr><th>Category</th><th>Blocked Executables</th></tr>
+<tr><td><b>Shells/Interpreters</b></td><td><code>cmd.exe</code>, <code>powershell.exe</code>, <code>powershell_ise.exe</code>, <code>cscript.exe</code>, <code>mshta.exe</code></td></tr>
+<tr><td><b>Registry/Editing</b></td><td><code>regedit.exe</code>, <code>regedit32.exe</code></td></tr>
+<tr><td><b>Control Panel</b></td><td><code>control.exe</code>, <code>SystemSettings.exe</code></td></tr>
+<tr><td><b>System Management</b></td><td><code>mmc.exe</code>, <code>taskmgr.exe</code>, <code>msconfig.exe</code>, <code>msinfo32.exe</code></td></tr>
+<tr><td><b>MMC Snap-ins</b></td><td><code>compmgmt.msc</code>, <code>devmgmt.msc</code>, <code>diskmgmt.msc</code>, <code>services.msc</code>, <code>eventvwr.msc</code>, <code>gpedit.msc</code>, <code>lusrmgr.msc</code>, <code>secpol.msc</code>, <code>comexp.msc</code>, <code>certmgr.msc</code></td></tr>
+<tr><td><b>Network</b></td><td><code>ncpa.cpl</code>, <code>ipconfig.exe</code>, <code>firewall.cpl</code></td></tr>
+<tr><td><b>Utilities</b></td><td><code>notepad.exe</code>, <code>write.exe</code>, <code>wordpad.exe</code>, <code>calc.exe</code>, <code>mspaint.exe</code>, <code>SnippingTool.exe</code></td></tr>
+<tr><td><b>Diagnostics</b></td><td><code>perfmon.exe</code>, <code>resmon.exe</code>, <code>dxdiag.exe</code></td></tr>
+<tr><td><b>Remote Access</b></td><td><code>mstsc.exe</code></td></tr>
+<tr><td><b>CPL Applets</b></td><td><code>appwiz.cpl</code>, <code>inetcpl.cpl</code>, <code>sysdm.cpl</code>, <code>timedate.cpl</code>, <code>main.cpl</code>, <code>intl.cpl</code></td></tr>
+<tr><td><b>Other</b></td><td><code>winver.exe</code></td></tr>
+</table>
+<p><b>Not Blocked</b>: <code>wscript.exe</code> (required for KioskLauncher.vbs scheduled task).</p>
+
+<h3>5.3 Application Crash Dumps (Step 8)</h3>
+<p><b>Configuration</b>: <code>hardware-config.json</code> &rarr; <code>software.crashDumps</code></p>
+<ul>
+<li>Registry: <code>HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\&lt;process&gt;</code></li>
+<li><b>DumpFolder</b>: Configurable (default: <code>E:\CrashDumps</code>).</li>
+<li><b>DumpCount</b>: 5.</li>
+<li><b>DumpType</b>: 2 (full mini-dump).</li>
+<li><b>Target Processes</b>: Configurable list (e.g., <code>GVPPro.exe</code>, imaging services).</li>
+</ul>
+
+<h3>5.4 Services Optimization (Step 9)</h3>
+<p><b>Service Control Manager</b> (<code>sc config</code> / <code>Set-Service</code>):</p>
+
+<h4>5.4.1 Enabled Services</h4>
+<table>
+<tr><th>Service Name</th><th>Display Name / Function</th><th>Action</th></tr>
+<tr><td><b>vds</b></td><td>Virtual Disk Service</td><td><b>Auto</b></td></tr>
+<tr><td><b>MsKeyboardFilter</b></td><td>WEKF Keyboard Filter</td><td><b>Auto</b></td></tr>
+<tr><td><b>Spooler</b></td><td>Print Spooler</td><td><b>Auto</b></td></tr>
+<tr><td><b>W32Time</b></td><td>Windows Time</td><td><b>Auto</b></td></tr>
+<tr><td><b>WlanSvc</b></td><td>WLAN AutoConfig</td><td><b>Auto</b></td></tr>
+<tr><td><b>UsoSvc</b></td><td>Update Orchestrator</td><td><b>Manual (Demand)</b></td></tr>
+</table>
+
+<h4>5.4.2 Full List of DISABLED Services (98 Services)</h4>
+<p>The following services are strictly <b>DISABLED</b> (<code>start= disabled</code> and Stopped):</p>
+
+<p><b>Networking &amp; Remote Access</b></p>
+<ul>
+<li><code>SSDPSRV</code> (SSDP Discovery)</li>
+<li><code>RemoteRegistry</code></li>
+<li><code>RemoteAccess</code></li>
+<li><code>upnphost</code> (UPnP Device Host)</li>
+<li><code>fdPHost</code> (Function Discovery Provider Host)</li>
+<li><code>FDResPub</code> (Function Discovery Resource Publication)</li>
+<li><code>WMPNetworkSvc</code> (Windows Media Player Network Sharing)</li>
+<li><code>PeerDistSvc</code> (BranchCache)</li>
+<li><code>RasMan</code> (Remote Access Connection Manager)</li>
+<li><code>UmRdpService</code> (Remote Desktop Services UserMode Port Redirector)</li>
+<li><code>TermService</code> (Remote Desktop Services)</li>
+<li><code>SessionEnv</code> (Remote Desktop Configuration)</li>
+<li><code>WinRM</code> (Windows Remote Management)</li>
+<li><code>WebClient</code></li>
+<li><code>AJRouter</code> (AllJoyn Router Service)</li>
+<li><code>ALG</code> (Application Layer Gateway Service)</li>
+<li><code>icssvc</code> (Windows Mobile Hotspot Service)</li>
+<li><code>LanmanServer</code> (Server &mdash; temporarily enabled during seal for user management, then re-disabled)</li>
+<li><code>QWAVE</code> (Quality Windows Audio Video Experience)</li>
+<li><code>wcncsvc</code> (Windows Connect Now)</li>
+<li><code>WwanSvc</code> (WWAN AutoConfig)</li>
+<li><code>HomeGroupListener</code></li>
+<li><code>HomeGroupProvider</code></li>
+<li><code>SharedAccess</code> (Internet Connection Sharing - ICS)</li>
+</ul>
+<p><b>Updates, Telemetry &amp; Diagnostics</b></p>
+<ul>
+<li><code>wuauserv</code> (Windows Update)</li>
+<li><code>WSearch</code> (Windows Search)</li>
+<li><code>DiagTrack</code> (Connected User Experiences and Telemetry)</li>
+<li><code>WerSvc</code> (Windows Error Reporting Service)</li>
+<li><code>wercplsupport</code> (Problem Reports and Solutions Control Panel Support)</li>
+<li><code>diagsvc</code> (Diagnostic Execution Service)</li>
+<li><code>DPS</code> (Diagnostic Policy Service)</li>
+<li><code>WdiServiceHost</code> (Diagnostic Service Host)</li>
+<li><code>WdiSystemHost</code> (Diagnostic System Host)</li>
+<li><code>TroubleshootingSvc</code> (Program Compatibility Assistant Service)</li>
+<li><code>PcaSvc</code> (Program Compatibility Assistant Service)</li>
+<li><code>DoSvc</code> (Delivery Optimization)</li>
+<li><code>AppVClient</code> (Microsoft App-V Client)</li>
+<li><code>UevAgentService</code> (User Experience Virtualization Service)</li>
+<li><code>PushToInstall</code> (Windows PushToInstall Service)</li>
+<li><code>InstallService</code> (Microsoft Store Install Service)</li>
+<li><code>tzautoupdate</code> (Auto Time Zone Updater)</li>
+<li><code>WaaSMedicSvc</code> (Windows Update Medic Service)</li>
+</ul>
+<p><b>Hardware, Audio &amp; Bluetooth</b></p>
+<ul>
+<li><code>hidserv</code> (Human Interface Device Service)</li>
+<li><code>stisvc</code> (Windows Image Acquisition)</li>
+<li><code>WbioSrvc</code> (Windows Biometric Service)</li>
+<li><code>Fax</code></li>
+<li><code>TapiSrv</code> (Telephony)</li>
+<li><code>WPDBusEnum</code> (Portable Device Enumerator Service)</li>
+<li><code>BthAvctpSvc</code> (AVCTP Service)</li>
+<li><code>bthserv</code> (Bluetooth Support Service)</li>
+<li><code>BTAGService</code> (Bluetooth Audio Gateway Service)</li>
+<li><code>CertPropSvc</code> (Certificate Propagation)</li>
+<li><code>Audiosrv</code> (Windows Audio)</li>
+<li><code>AudioEndpointBuilder</code> (Windows Audio Endpoint Builder)</li>
+<li><code>VacSvc</code> (Volumetric Audio Compositor Service)</li>
+<li><code>FrameServer</code> (Windows Camera Frame Server)</li>
+<li><code>shpamsvc</code> (Shared PC Account Manager)</li>
+</ul>
+<p><b>Virtualization (Hyper-V Guest)</b></p>
+<ul>
+<li><code>vmicvmsession</code></li>
+<li><code>vmicguestinterface</code></li>
+<li><code>vmicheartbeat</code></li>
+<li><code>vmictimesync</code></li>
+<li><code>vmickvpexchange</code></li>
+<li><code>vmicrdv</code></li>
+<li><code>vmicshutdown</code></li>
+<li><code>HvHost</code> (HV Host Service)</li>
+</ul>
+<p><b>Storage, Backup &amp; File System</b></p>
+<ul>
+<li><code>swprv</code> (Microsoft Software Shadow Copy Provider)</li>
+<li><code>VSS</code> (Volume Shadow Copy)</li>
+<li><code>wbengine</code> (Block Level Backup Engine Service)</li>
+<li><code>SDRSVC</code> (Windows Backup)</li>
+<li><code>MSiSCSI</code> (Microsoft iSCSI Initiator Service)</li>
+<li><code>CscService</code> (Offline Files)</li>
+<li><code>defragsvc</code> (Optimize drives)</li>
+<li><code>TieringEngineService</code> (Storage Tiers Management)</li>
+<li><code>TrkWks</code> (Distributed Link Tracking Client)</li>
+<li><code>SEMgrSvc</code> (Payments and NFC/SE Manager)</li>
+</ul>
+<p><b>User Experience, Xbox &amp; Shell</b></p>
+<ul>
+<li><code>Themes</code></li>
+<li><code>SysMain</code> (Superfetch)</li>
+<li><code>WpcMonSvc</code> (Parental Controls)</li>
+<li><code>SharedRealitySvc</code> (Windows Mixed Reality)</li>
+<li><code>MapsBroker</code> (Downloaded Maps Manager)</li>
+<li><code>RetailDemo</code> (Retail Demo Service)</li>
+<li><code>WalletService</code></li>
+<li><code>PhoneSvc</code></li>
+<li><code>AssignedAccessManagerSvc</code></li>
+<li><code>autotimesvc</code> (Cellular Time)</li>
+<li><code>pla</code> (Performance Logs &amp; Alerts)</li>
+<li><code>DusmSvc</code> (Data Usage)</li>
+<li><code>XblAuthManager</code> (Xbox Live Auth Manager)</li>
+<li><code>XblGameSave</code> (Xbox Live Game Save)</li>
+<li><code>XboxGipSvc</code> (Xbox Accessory Management)</li>
+<li><code>XboxNetApiSvc</code> (Xbox Live Networking Service)</li>
+<li><code>RmSvc</code> (Radio Management Service)</li>
+<li><code>wisvc</code> (Windows Insider Service)</li>
+<li><code>wlidsvc</code> (Microsoft Account Sign-in Assistant)</li>
+<li><code>BITS</code> (Background Intelligent Transfer Service)</li>
+<li><code>AxInstSV</code> (ActiveX Installer)</li>
+<li><code>SNMPTRAP</code> (SNMP Trap)</li>
+<li><code>Wecsvc</code> (Windows Event Collector)</li>
+</ul>
+
+<h3>5.5 Firewall Configuration (Step 10)</h3>
+<p><b>netsh / Set-NetFirewallRule</b>:</p>
+<ul>
+<li><b>Global</b>: <code>advfirewall reset</code>, Block Inbound, Allow Outbound.</li>
+<li><b>Allowed Groups</b>: &ldquo;Core Networking&rdquo;, &ldquo;File and Printer Sharing&rdquo;, &ldquo;Remote Assistance&rdquo;.</li>
+<li><b>Blocked Keywords</b> (Regex matching DisplayName):
+  <ul>
+    <li><code>*IGMP*</code>, <code>*Multicast Listener*</code>, <code>*Neighbor Discovery*</code>, <code>*Teredo*</code></li>
+    <li><code>*NB-Datagram*</code>, <code>*NB-Name*</code>, <code>*NB-Session*</code>, <code>*SMB-In*</code></li>
+    <li><code>*mDNS*</code>, <code>*Cast to Device*</code></li>
+  </ul>
+</li>
+<li><b>ICMP</b>: Block Echo Requests (Ping) for v4 and v6.</li>
+<li><b>Custom Rules</b>:
+  <ul>
+    <li>Allow TCP 22 Inbound (OpenSSH)</li>
+    <li>Allow TCP 104 Inbound (DICOM)</li>
+    <li>Allow TCP 104, 2761 Outbound (DICOM/HL7)</li>
+  </ul>
+</li>
+</ul>
+
+<h3>5.6 Local Policies (Step 11)</h3>
+<ul>
+<li><b>USBSTOR</b>: <code>HKLM\SYSTEM\CurrentControlSet\Services\USBSTOR\Start</code> = 3 (device disabled, prevents USB storage enumeration).</li>
+</ul>
+
+<h3>5.7 CIS Benchmarks (Step 12)</h3>
+<table>
+<tr><th>Category</th><th>Registry Key (HKLM)</th><th>Value Name</th><th>Data</th><th>Description</th></tr>
+<tr><td>LSA</td><td><code>SYSTEM\CurrentControlSet\Control\Lsa</code></td><td><code>LimitBlankPasswordUse</code></td><td>1</td><td>No Blank PW</td></tr>
+<tr><td>LSA</td><td><code>SYSTEM\CurrentControlSet\Control\Lsa</code></td><td><code>LmCompatibilityLevel</code></td><td>5</td><td>NTLMv2 Only</td></tr>
+<tr><td>UAC</td><td><code>SOFTWARE\...\Policies\System</code></td><td><code>EnableLUA</code></td><td>1</td><td>Admin Approval (re-enabled at seal)</td></tr>
+<tr><td>UAC</td><td><code>SOFTWARE\...\Policies\System</code></td><td><code>ConsentPromptBehaviorAdmin</code></td><td>1</td><td>Secure Desktop</td></tr>
+<tr><td>Net</td><td><code>SYSTEM\...\Tcpip\Parameters</code></td><td><code>DisableIPSourceRouting</code></td><td>2</td><td>Highest Protection</td></tr>
+<tr><td>Net</td><td><code>SOFTWARE\...\HardenedPaths</code></td><td><code>\\*\NETLOGON</code></td><td><code>RequireMutualAuthentication=1,RequireIntegrity=1</code></td><td>Hardened UNC</td></tr>
+</table>
+
+<h3>5.8 Advanced Audit Policies (Step 13)</h3>
+<p><b>auditpol</b>:</p>
+<ul>
+<li><code>auditpol /set /subcategory:"Logon" /success:enable /failure:enable</code></li>
+<li><code>auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable</code> (CmdLine args enabled via Registry).</li>
+<li><code>auditpol /set /subcategory:"Account Lockout" /failure:enable</code></li>
+<li><code>auditpol /set /subcategory:"Removable Storage" /success:enable /failure:enable</code></li>
+</ul>
+<p><b>Event Logs</b> (<code>wevtutil</code>):</p>
+<ul>
+<li><b>Command</b>: <code>wevtutil sl [LogName] /ms:20971520 /rt:false /ca:[SDDL]</code></li>
+<li><b>Size</b>: 20MB (20971520 bytes).</li>
+<li><b>Retention</b>: Circular (overwrite as needed).</li>
+<li><b>SDDLs</b>:
+  <ul>
+    <li><i>Application</i>: <code>O:BAG:SYD:(A;;0x3;;;IU)(A;;0x7;;;BA)(A;;0xf0007;;;SY)</code> (Interactive User Read-Only).</li>
+    <li><i>Security/System</i>: Same SDDL pattern.</li>
+  </ul>
+</li>
+</ul>
+
+<h3>5.9 AppLocker (Step 14 &mdash; Deferred to Seal)</h3>
+<p><b>Implementation</b>: XML Policy imported via <code>Set-AppLockerPolicy -XmlPolicy &lt;tempFile&gt; -Merge</code>.<br>
+<b>Enforcement</b>: Deferred to Final Seal Phase (not applied in Step 14) to ensure installer resilience across reboots.</p>
+<p><b>Rules</b>:</p>
+<ol>
+<li><b>EikonAdmin Bypass</b> (Per-User SID):
+  <ul>
+    <li>Uses <code>GetUserSid("EikonAdmin")</code> to retrieve the specific user SID at runtime.</li>
+    <li>Rule: <code>FilePathRule Path="*" Action="Allow"</code> scoped to EikonAdmin&rsquo;s SID.</li>
+    <li><b>Why per-user SID</b>: Both EikonUser and EikonAdmin are in <code>Administrators</code>. Using group SID <code>S-1-5-32-544</code> would bypass AppLocker for both users.</li>
+    <li>Fallback: <code>S-1-5-32-544</code> if SID lookup fails.</li>
+  </ul>
+</li>
+<li><b>System Defaults</b> (Everyone <code>S-1-1-0</code>):
+  <ul>
+    <li><code>%PROGRAMFILES%\*</code></li>
+    <li><code>%WINDIR%\*</code></li>
+  </ul>
+</li>
+<li><b>Configurable Paths</b> (<code>hardware-config.json</code> &rarr; <code>software.appLocker.allowedPaths</code>):
+  <ul><li>e.g., <code>D:\GVP-Pro\App\*</code> &mdash; allows clinical application executables.</li></ul>
+</li>
+<li><b>Installer Directory</b>: Automatically allows <code>&lt;EikonConfigurator base dir&gt;\*</code> to support resume/reseal.</li>
+</ol>
+<p><b>Service</b>: <code>AppIDSvc</code> set to <code>start=auto</code> and started before policy merge.</p>
+
+<h3>5.10 Windows Defender Exclusions (Step 15)</h3>
+<p><b>PowerShell</b> (<code>Add-MpPreference</code>):</p>
+<ul>
+<li><b>Exclusion Paths</b>: Configured via <code>hardware-config.json</code> &rarr; <code>software.defender.exclusionPaths</code>.</li>
+<li><b>Exclusion Processes</b>: Configured via <code>hardware-config.json</code> &rarr; <code>software.defender.exclusionProcesses</code>.</li>
+</ul>
+
+<h3>5.11 Printer Configuration (Step 16)</h3>
+<p><b>Configuration</b>: <code>hardware-config.json</code> &rarr; <code>printers[]</code></p>
+<ul>
+<li><b>Driver Installation</b>: Supports <code>.INF</code> (pnputil), <code>.MSI</code> (msiexec), <code>.EXE</code> (direct invocation).</li>
+<li><b>Port Creation</b>: TCP ports by IP address; USB ports.</li>
+<li><b>Printer Queue</b>: <code>Add-Printer</code> with configured driver and port.</li>
+<li><b>Default Printer</b>: Set via <code>isDefault=true</code>.</li>
+<li>Skipped if no printers defined in config.</li>
+</ul>
+
+<h2>6. Kiosk &amp; Shell Hardening</h2>
+
+<h3>6.1 Unified Write Filter &mdash; UWF (Step 17)</h3>
+<p><b><code>uwfmgr</code> Configuration</b>:</p>
+<ul>
+<li><b>Reboot Detection</b>: Checks for <code>uwfmgr.exe</code> availability and <code>RebootPending</code> registry key. If features require reboot, sets <code>_uwfFailedPendingReboot=true</code> and triggers reboot (see &sect;7 Two-Pass Design).</li>
+<li><b>Overlay</b>: <code>uwfmgr overlay set-warningthreshold 1024</code> (warn at 1GB).</li>
+<li><b>Volume</b>: <code>uwfmgr volume protect C:</code> (write-protect C: drive).</li>
+<li><b>Overlay Size</b>: <code>uwfmgr overlay set-size &lt;overlaySizeMb&gt;</code> (configurable via <code>hardware-config.json</code>).</li>
+<li><b>File Exclusions</b> (mandatory + configurable):
+  <ul>
+    <li><code>C:\ProgramData\Microsoft\Crypto</code></li>
+    <li><code>C:\ProgramData\Microsoft\wlansvc</code></li>
+    <li><code>C:\Windows\WindowsUpdate.log</code></li>
+    <li>Additional from <code>hardware-config.json</code> &rarr; <code>uwf.fileExclusions</code></li>
+  </ul>
+</li>
+<li><b>Registry Exclusions</b> (mandatory + configurable):
+  <ul>
+    <li><code>HKLM\SYSTEM\CurrentControlSet\Control\ComputerName</code></li>
+    <li><code>HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters</code></li>
+    <li><code>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones</code></li>
+    <li>Additional from <code>hardware-config.json</code> &rarr; <code>uwf.registryExclusions</code></li>
+  </ul>
+</li>
+<li><b>Activation</b>: <code>uwfmgr filter enable</code></li>
+</ul>
+
+<h3>6.2 Keyboard Filter &mdash; WEKF (Step 18)</h3>
+<p><b>Namespace</b>: <code>root\standardcimv2\embedded</code></p>
+<p><b>Per-Account Filtering</b> (<code>WEKF_Account</code> WMI class):</p>
+<table>
+<tr><th>Account</th><th>Enabled</th><th>Effect</th></tr>
+<tr><td><b>EikonUser</b></td><td><code>true</code></td><td>All keyboard shortcuts blocked</td></tr>
+<tr><td><b>EikonAdmin</b></td><td><code>false</code></td><td>Full keyboard access for maintenance</td></tr>
+</table>
+<div class="note"><b>Note</b>: Both users are in <code>Administrators</code> group. Per-account WMI filtering is used because <code>DisableKeyboardFilterForAdministrators</code> would bypass WEKF for both users.</div>
+
+<p><b>Blocked Predefined Keys</b> (<code>WEKF_PredefinedKey</code>):</p>
+<ul>
+<li><code>Alt+F4</code>, <code>Alt+Tab</code>, <code>Alt+Esc</code>, <code>Ctrl+Esc</code>, <code>Ctrl+F4</code></li>
+<li><code>Win+L</code> (Lock), <code>Win+R</code> (Run), <code>Win+E</code> (Explorer), <code>Win+M</code> (Minimize), <code>Win+D</code> (Desktop)</li>
+<li><code>Win</code> (Start Menu), <code>Win+U</code>, <code>Win+Enter</code></li>
+<li><code>Win+Up</code>, <code>Win+Down</code>, <code>Win+Left</code>, <code>Win+Right</code> (Snap Assist)</li>
+</ul>
+<p><b>Blocked Custom Scancodes</b> (<code>WEKF_CustomKey</code>):</p>
+<table>
+<tr><th>Shortcut</th><th>Modifiers</th><th>Scancode</th></tr>
+<tr><td><code>Ctrl+Alt+Tab</code></td><td>6 (Ctrl+Alt)</td><td>15</td></tr>
+<tr><td><code>Ctrl+Alt+Esc</code></td><td>6 (Ctrl+Alt)</td><td>1</td></tr>
+<tr><td><code>Win+X</code></td><td>8 (Win)</td><td>45</td></tr>
+<tr><td><code>Win+Space</code></td><td>8 (Win)</td><td>57</td></tr>
+</table>
+
+<h3>6.3 Kiosk Startup &mdash; KioskLauncher (Step 19)</h3>
+<p><b>Scheduled Task</b> (<code>EikonKioskLauncher</code>):</p>
+<ul>
+<li><b>Trigger</b>: <code>AtLogOn -User EikonUser</code> (fires only when EikonUser logs in, not EikonAdmin).</li>
+<li><b>Action</b>: <code>wscript.exe "&lt;KioskLauncher.vbs path&gt;"</code>.</li>
+<li><b>Principal</b>: <code>EikonUser</code>, Interactive session, Limited run level.</li>
+<li><b>Settings</b>: <code>AllowStartIfOnBatteries</code>, <code>DontStopIfGoingOnBatteries</code>, <code>StartWhenAvailable</code>.</li>
+<li><b>ExecutionTimeLimit</b>: <code>00:00:00</code> (no timeout &mdash; runs indefinitely).</li>
+</ul>
+<p><b>Desktop Shortcut</b> (<code>Start GVP-Pro.lnk</code>):</p>
+<ul>
+<li>Placed in <code>C:\Users\Default\Desktop\</code> (inherited by all new profiles).</li>
+<li>Target: <code>wscript.exe</code> with <code>KioskLauncher.vbs</code> path.</li>
+<li>Allows manual restart of the kiosk application after a crash.</li>
+</ul>
+<p><b>Custom Shell</b> (configurable via <code>hardware-config.json</code> &rarr; <code>software.shell.customShellPath</code>):</p>
+<ul>
+<li><b>Registry</b>: <code>HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell</code></li>
+<li><i>Default</i>: <code>explorer.exe</code>.</li>
+<li><i>Example</i>: <code>D:\GVP-Pro\App\GVPPro.exe</code>.</li>
+</ul>
+
+<h2>7. Seal Installation &mdash; Two-Pass Design</h2>
+
+<h3>7.1 Pass 1: Reboot for Pending Features</h3>
+<p>When UWF/DISM features require a reboot (<code>_uwfFailedPendingReboot=true</code>):</p>
+<ol>
+<li>Configures AutoLogon for <b>EikonAdmin</b> (Winlogon keys + <code>ForceAutoLogon=1</code>).</li>
+<li>Sets <code>DevicePasswordLessBuildVersion=0</code> (disables Windows 10 2004+ passwordless feature that silently ignores AutoLogon keys).</li>
+<li>Registers RunOnce resilience task: <code>*EikonConfiguratorResume</code> &rarr; <code>EikonConfigurator.exe --resume</code>.</li>
+<li>Triggers <code>shutdown /r /t 30</code> with message.</li>
+<li>On reboot: EikonAdmin auto-logs in, RunOnce fires, EikonConfigurator resumes from last completed step.</li>
+</ol>
+
+<h3>7.2 Pass 2: Final Seal</h3>
+<p>When no reboot is pending:</p>
+<ol>
+<li><b>Cleanup Resilience</b>: Deletes RunOnce entry and state registry key.</li>
+<li><b>Reset EikonUser Password</b>: Generates new 32-character random password.</li>
+<li><b>Configure Final AutoLogon</b>:
+  <ul>
+    <li>Production: <code>DefaultUserName=EikonUser</code> (boots directly to kiosk).</li>
+    <li>VM/Test (<code>--keep-admin</code>): <code>DefaultUserName=EikonAdmin</code>.</li>
+    <li><code>AutoAdminLogon=1</code>, <code>ForceAutoLogon=0</code> (Sign Out returns to login screen for technician access).</li>
+  </ul>
+</li>
+<li><b>Re-disable LanmanServer</b>: Was temporarily enabled for user management.</li>
+<li><b>Apply AppLocker Policy</b>: Calls <code>ConfigureAppLockerFinal()</code> (&sect;5.9).</li>
+<li><b>Re-enable UAC</b>: <code>EnableLUA=1</code>, <code>ConsentPromptBehaviorAdmin=1</code>.</li>
+<li><b>Re-enable Security</b>: <code>DontDisplayLastUserName=1</code> (final &mdash; hides username on logon screen).</li>
+<li><b>Shutdown</b>: <code>shutdown /s /t 30</code> &mdash; <i>&ldquo;Installation complete. Power the PC on 30 seconds after power off.&rdquo;</i></li>
+</ol>
+
+<h3>7.3 Reseal Mode (<code>--reseal-only</code>)</h3>
+<p>Allows re-locking a system after technician maintenance without full re-installation:</p>
+<ul>
+<li>Re-enables UWF, WEKF, AppLocker.</li>
+<li>Resets EikonUser credentials.</li>
+<li>Sets AutoLogon back to EikonUser.</li>
+<li>Shuts down the system.</li>
+</ul>
+
+<h2>8. Logging &amp; Auditing</h2>
+
+<h3>8.1 OneClickInstaller Log</h3>
+<ul>
+<li><b>File</b>: <code>oneclickinstaller_log.txt</code> in the installer directory.</li>
+<li><b>Format</b>: <code>[yyyy-MM-dd HH:mm:ss] message</code></li>
+<li>OS configuration output prefixed with <code>[OS Config]</code>.</li>
+</ul>
+
+<h3>8.2 EikonConfigurator Log</h3>
+<ul>
+<li><b>File</b>: <code>C:\ProgramData\EikonConfigurator\OS_ClosedLoop.log</code></li>
+<li>Persists across reboots for two-pass debugging.</li>
+</ul>
+
+</body></html>

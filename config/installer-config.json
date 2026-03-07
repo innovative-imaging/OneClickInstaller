@@ -1,0 +1,173 @@
+{
+  "$schema": "./installer-config.schema.json",
+  "installerConfig": {
+    "name": "Professional Software Installer",
+    "version": "1.0.0",
+    "description": "One-click installation of essential software packages"
+  },
+  "diskPartitioning": {
+    "enabled": true,
+    "diskNumber": 0,
+    "partitions": [
+      { "driveLetter": "C", "sizeGB": 60, "label": "OS" },
+      { "driveLetter": "D", "sizeGB": 15, "label": "App" },
+      { "driveLetter": "E", "sizeGB": 0, "label": "Data", "useRemainingSpace": true }
+    ]
+  },
+  "softwarePackages": [
+    {
+      "name": "Microsoft Visual C++ 2008 Redistributable (x86)",
+      "relativePath": "Microsoft Visual C++ 2008 Redistributable Package - 9.0.30729.6161\\vcredist_x86.exe",
+      "installType": "EXE",
+      "installArgs": "/quiet",
+      "required": true,
+      "description": "Microsoft Visual C++ 2008 runtime libraries"
+    },
+    {
+      "name": "Microsoft Visual C++ 2010 Redistributable (x86)",
+      "relativePath": "Microsoft Visual C++ 2010 Redistributable Package -10.0.40219.473\\vcredist_x86.exe",
+      "installType": "EXE",
+      "installArgs": "/quiet",
+      "required": true,
+      "description": "Microsoft Visual C++ 2010 runtime libraries"
+    },
+    {
+      "name": "Microsoft Visual C++ 2010 Redistributable (x64)",
+      "relativePath": "Microsoft Visual C++ 2010 Redistributable Package -10.0.40219.473\\vcredist_x64.exe",
+      "installType": "EXE",
+      "installArgs": "/quiet",
+      "required": true,
+      "description": "Microsoft Visual C++ 2010 runtime libraries (64-bit)"
+    },
+    {
+      "name": "Microsoft Visual C++ 2012 Redistributable (x86)",
+      "relativePath": "Microsoft Visual C++ 2012 Redistributable Package - 11.0.61030\\vcredist_x86.exe",
+      "installType": "EXE",
+      "installArgs": "/quiet",
+      "required": true,
+      "description": "Microsoft Visual C++ 2012 runtime libraries"
+    },
+    {
+      "name": "Microsoft Visual C++ 2012 Redistributable (x64)",
+      "relativePath": "Microsoft Visual C++ 2012 Redistributable Package - 11.0.61030\\vcredist_x64.exe",
+      "installType": "EXE",
+      "installArgs": "/quiet",
+      "required": true,
+      "description": "Microsoft Visual C++ 2012 runtime libraries (64-bit)"
+    },
+    {
+      "name": "Microsoft Visual C++ 2015-2022 Redistributable (x64)",
+      "relativePath": "Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.44.35211  14.44.35211.0\\VC_redist.x64.v14.44.35211.0.exe",
+      "installType": "EXE",
+      "installArgs": "/quiet",
+      "required": true,
+      "description": "Microsoft Visual C++ 2015-2022 runtime libraries (64-bit)"
+    },
+    {
+      "name": "7-Zip 9.20 (x64)",
+      "relativePath": "7Zip\\7z920-x64.msi",
+      "installType": "MSI",
+      "installArgs": "/quiet /norestart ALLUSERS=1",
+      "required": true,
+      "description": "File compression utility"
+    },
+	{
+		"name": "CH34x USB Driver",
+		"relativePath": "CH34x_Install_Windows_v3_4\\CH341SER.INF",
+		"installType": "INF",
+		"installArgs": "",
+		"required": true,
+		"description": "USB-to-serial converter driver"
+	},
+    {
+      "name": "Microsoft DirectX SDK",
+      "relativePath": "DirectX-SDK\\DXSDK_Jun10.exe",
+      "installType": "EXE",
+      "installArgs": "/U",
+      "required": true,
+      "description": "DirectX development kit"
+    },
+    {
+      "name": "MySQL Installer (Bootstrapper)",
+      "relativePath": "MySQL_JavaJRE_DB_Installer-20231002T070835Z-001\\MySQL_JavaJRE_DB_Installer\\mysql-installer-community-8.0.21.0.msi",
+      "installType": "MSI",
+      "installArgs": "/quiet /norestart ALLUSERS=1",
+      "required": true,
+      "description": "Installs the MySQL Installer tool (bootstrapper)"
+    },
+    {
+      "name": "MySQL Server 8.0.21 + Workbench",
+      "relativePath": "MySQL_JavaJRE_DB_Installer-20231002T070835Z-001\\MySQL_JavaJRE_DB_Installer\\MySQLInstallerConsole.exe",
+      "installType": "MYSQL_CONSOLE",
+      "installArgs": "community install server;8.0.21;x64:*:port=3306;openfirewall=true;passwd=root workbench;8.0.21;x64 -silent",
+      "required": true,
+      "description": "Installs MySQL Server and MySQL Workbench via MySQLInstallerConsole",
+      "postInstall": {
+        "configureMySQL": true,
+        "timeoutSeconds": 60
+      }
+    },
+    {
+      "name": "MySQL Connector .NET",
+      "relativePath": "MySQL_JavaJRE_DB_Installer-20231002T070835Z-001\\MySQL_JavaJRE_DB_Installer\\mysql-connector-net-8.0.25.msi",
+      "installType": "MSI",
+      "installArgs": "/quiet /norestart ALLUSERS=1",
+      "required": true,
+      "description": ".NET database connector"
+    },
+    {
+      "name": "Luts Files",
+      "relativePath": "Luts",
+      "installType": "COPY",
+      "copyDestination": "D:\\Luts",
+      "required": true,
+      "description": "Copy LUT calibration files to D:\\"
+    },
+    {
+      "name": "Notepad++ 8.8.9",
+      "relativePath": "Notepad++\\npp.8.8.9.Installer.x64.msi",
+      "installType": "MSI",
+      "installArgs": "/quiet /norestart ALLUSERS=1",
+      "required": true,
+      "description": "Advanced text editor"
+    }
+  ],
+  "finalInstallPackage": {
+    "name": "GVPPro Setup",
+    "relativePath": "GVPPro\\GVPPro-Setup.msi",
+    "installType": "MSI",
+    "installArgs": "/quiet /norestart ALLUSERS=1",
+    "description": "GVPPro application"
+  },
+  "mysqlConfig": {
+    "username": "root",
+    "password": "root",
+    "database": "dcmdetails",
+    "sqlScript": "MySQL_JavaJRE_DB_Installer-20231002T070835Z-001\\MySQL_JavaJRE_DB_Installer\\dcmdetails_20251217.sql"
+  },
+  "settings": {
+    "maxInstallTimeMinutes": 15,
+    "retryAttempts": 1,
+    "showDetailedProgress": true,
+    "createInstallLog": true
+  },
+  "postInstallScripts": {
+    "enabled": true,
+    "description": "Post-Install Scripts",
+    "scripts": [
+      "D:\\GVP-Pro\\App\\PostInstallScript _IP.bat",
+      "D:\\GVP-Pro\\App\\PostInstallScript.bat"
+    ],
+    "cleanupScript": "D:\\GVP-Pro\\App\\PostInstallScript _RemoveIPFiles.bat"
+  },
+  "osConfiguration": {
+    "enabled": false,
+    "relativePath": "EikonConfigurator\\EikonConfigurator.exe",
+    "description": "Kiosk OS Configuration (19 steps)",
+    "autoReboot": true,
+    "bypassHardwareCheck": true,
+    "logPath": null,
+    "dryRun": false,
+    "adminPassword": null
+  }
+}

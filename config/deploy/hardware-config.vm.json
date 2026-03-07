@@ -1,0 +1,134 @@
+{
+  // =========================================================================
+  // HARDWARE REQUIREMENTS  (VM / TEST MODE)
+  // Relaxed values for VirtualBox / Hyper-V test machines.
+  // allowedCpuFamilies is empty => any CPU model is accepted.
+  // =========================================================================
+  "hardwareRequirements": {
+    "minCpuCores": 1,
+    "minRamGB": 2,
+    "minDiskGB": 50,
+    "minNetworkAdapters": 1,
+    "allowedCpuFamilies": []
+  },
+
+  // =========================================================================
+  // STARTUP FILE DEPLOYMENT
+  // =========================================================================
+  "startupFiles": [
+    {
+      "source": "KioskLauncher.vbs",
+      "destination": "D:\\GVP-Pro\\App\\KioskLauncher.vbs",
+      "description": "VBS shell launcher script for kiosk mode"
+    }
+  ],
+
+  // =========================================================================
+  // NETWORK ADAPTER CONFIGURATION
+  // =========================================================================
+  "networkAdapaters": [
+    {
+      "identification": {
+        "descriptionKeywords": [ "Intel", "Gigabit" ],
+        "macAddressPrefix": ""
+      },
+      "settings": {
+        "newName": "ImageLink", 
+        "ipv4": {
+          "mode": "Static",
+          "ipAddress": "192.168.10.10",
+          "subnetMask": "255.255.255.0",
+          "gateway": ""
+        },
+        "advanced": {
+          "jumboPacket": "9014"
+        }
+      }
+    },
+    {
+      "identification": {
+        "descriptionKeywords": [ "Realtek", "PCIe" ],
+        "macAddressPrefix": ""
+      },
+      "settings": {
+        "newName": "Hospital_LAN",
+        "ipv4": {
+          "mode": "DHCP"
+        }
+      }
+    }
+  ],
+
+  // =========================================================================
+  // SERIAL PORT (COM) CONFIGURATION
+  // =========================================================================
+  "serialPorts": [
+    {
+      "identification": {
+        "hardwareIdDetails": "VID_1A86&PID_7523" 
+      },
+      "settings": {
+        "forceComPort": "COM3",
+        "baudRate": 115200
+      }
+    }
+  ],
+
+  // =========================================================================
+  // UNIFIED WRITE FILTER (UWF) CONFIGURATION
+  // =========================================================================
+  "uwf": {
+    "enabled": true,
+    "overlaySizeMb": 2048,
+    "fileExclusions": [
+      "C:\\Program Files\\Security\\Logs",
+      "C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Data",
+      "C:\\ProgramData\\Microsoft\\Windows Defender",
+      "C:\\Windows\\System32\\DriverStore\\FileRepository",
+      "C:\\Windows\\System32\\spool\\drivers",
+      "C:\\Windows\\INF"
+    ],
+    "registryExclusions": [
+      "HKLM\\Software\\Eikon"
+    ]
+  },
+
+  // =========================================================================
+  // PRINTER CONFIGURATION
+  // =========================================================================
+  "printers": [
+  ],
+
+  // =========================================================================
+  // SOFTWARE SECURITY & SHELL CONFIGURATION
+  // =========================================================================
+  "software": {
+    "shell": {
+      "customShellPath": "C:\\Windows\\System32\\wscript.exe D:\\GVP-Pro\\App\\KioskLauncher.vbs"
+    },
+    "appLocker": {
+      "allowedPaths": [
+        "D:\\GVP-Pro\\App\\*"
+      ]
+    },
+    "crashDumps": {
+      "enabled": true,
+      "dumpFolder": "E:\\CrashDumps",
+      "targetProcesses": [
+        "GVPPro.exe",
+        "GVPPro.ImageAcquisitionService.exe",
+        "GVPPro.ImageProcessingService.exe"
+      ]
+    },
+    "defender": {
+      "exclusionPaths": [
+        "D:\\GVP-Pro\\App",
+        "C:\\ProgramData\\MySQL"
+      ],
+      "exclusionProcesses": [
+        "GVPPro.exe",
+        "mysqld.exe"
+      ]
+    }
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "hardware-config.schema.json",
+  "title": "EikonConfigurator Hardware Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "hardwareRequirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minCpuCores":        { "type": "integer", "minimum": 1 },
+        "minRamGB":           { "type": "integer", "minimum": 1 },
+        "minDiskGB":          { "type": "integer", "minimum": 1 },
+        "minNetworkAdapters": { "type": "integer", "minimum": 0 },
+        "allowedCpuFamilies": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["minCpuCores", "minRamGB", "minDiskGB"]
+    },
+    "startupFiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source":      { "type": "string" },
+          "destination": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "required": ["source", "destination"]
+      }
+    },
+    "networkAdapaters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "identification": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "descriptionKeywords": { "type": "array", "items": { "type": "string" } },
+              "macAddressPrefix":    { "type": "string" }
+            }
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "newName": { "type": "string" },
+              "ipv4": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode":       { "type": "string", "enum": ["Static", "DHCP"] },
+                  "ipAddress":  { "type": "string" },
+                  "subnetMask": { "type": "string" },
+                  "gateway":    { "type": "string" }
+                },
+                "required": ["mode"]
+              },
+              "advanced": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "jumboPacket": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "serialPorts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "identification": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hardwareIdDetails": { "type": "string" }
+            }
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "forceComPort": { "type": "string" },
+              "baudRate":     { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "uwf": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled":             { "type": "boolean" },
+        "overlaySizeMb":       { "type": "integer", "minimum": 256 },
+        "fileExclusions":      { "type": "array", "items": { "type": "string" } },
+        "registryExclusions":  { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["enabled"]
+    },
+    "printers": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shell": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "customShellPath": { "type": "string" }
+          }
+        },
+        "appLocker": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowedPaths": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "crashDumps": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled":         { "type": "boolean" },
+            "dumpFolder":      { "type": "string" },
+            "targetProcesses": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "defender": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "exclusionPaths":     { "type": "array", "items": { "type": "string" } },
+            "exclusionProcesses": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}
