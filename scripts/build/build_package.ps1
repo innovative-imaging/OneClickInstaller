@@ -131,6 +131,12 @@ function New-Package {
         Write-Host "    Copied: hardware-config.$Mode.json -> EikonConfigurator/hardware-config.json"
     }
 
+    # Copy KioskLauncher.vbs into EikonConfigurator/ (required by hardware-config.json startupFiles)
+    $kioskVbsSrc = Join-Path $RepoRoot "src\KioskLauncher.vbs"
+    if (-not (Test-Path $kioskVbsSrc)) { Write-Error "KioskLauncher.vbs not found at: $kioskVbsSrc" }
+    Copy-Item $kioskVbsSrc $eikonDest -Force
+    Write-Host "    Copied: KioskLauncher.vbs -> EikonConfigurator/"
+
     # Create empty SW/ directory with a placeholder note
     $swDir = Join-Path $PackageDir "SW"
     New-Item -ItemType Directory -Path $swDir -Force | Out-Null

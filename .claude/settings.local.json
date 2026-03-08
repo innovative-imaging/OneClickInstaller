@@ -4,7 +4,8 @@
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \"scripts/build/build_package.ps1\")",
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \"scripts/build/build_package.ps1\" -SkipBuild)",
       "Bash(powershell.exe -Command \":*)",
-      "Bash(grep -v \"^C:\\\\\\\\Repos\\\\\\\\OneClickInstaller\\\\\\\\src\\\\\\\\EikonConfigurator\")"
+      "Bash(grep -v \"^C:\\\\\\\\Repos\\\\\\\\OneClickInstaller\\\\\\\\src\\\\\\\\EikonConfigurator\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"scripts\\\\build\\\\build_package.ps1\")"
     ]
   }
 }
